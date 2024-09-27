@@ -1,0 +1,234 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum Role {
+  USER
+  SELLER
+  ADMIN
+}
+
+enum Condition {
+  NEW
+  USED
+  REFURBISHED
+}
+
+enum Status {
+  COMPLETED
+  CANCELLED
+  CANCELLEDBYSELLER
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+}
+
+model User {
+  username        String   @id @db.VarChar(100)
+  first_name      String   @db.VarChar(100)
+  last_name       String?  @db.VarChar(100)
+  email           String   @unique @db.VarChar(100)
+  phone           String   @unique @db.VarChar(20)
+  password        String   @db.VarChar(100)
+  birth_of_date   DateTime @db.Date()
+  gender          Gender
+  avatar          String   @db.VarChar(255)
+  role            Role     @default(USER)
+  has_been_seller Boolean  @default(false)
+  created_at      DateTime @default(now()) @db.DateTime()
+  updated_at      DateTime @updatedAt @db.Timestamp()
+
+  addresses  Address[]
+  sellers    Seller?
+  categories Category[]
+  orders     Order[]
+  reviews    Review[]
+  wishlists  Wishlist[]
+  carts      Cart[]
+
+  @@map("users")
+}
+
+model Address {
+  id          Int     @id @default(autoincrement())
+  street      String  @db.VarChar(255)
+  city        String  @db.VarChar(100)
+  province    String  @db.VarChar(100)
+  postal_code String  @db.VarChar(10)
+  detail      String? @db.Text()
+  name        String  @db.VarChar(100)
+  phone       String  @db.VarChar(20)
+  is_selected Boolean @default(false)
+  is_sellers  Boolean @default(false)
+
+  username String @db.VarChar(100)
+  users    User   @relation(references: [username], fields: [username])
+
+  sellers Seller?
+  Order   Order[]
+
+  @@index([name, street, phone])
+  @@map("addresses")
+}
+
+model Seller {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  description String   @db.Text()
+  isDeleted   Boolean  @default(false)
+  created_at  DateTime @default(now()) @db.DateTime()
+  updated_at  DateTime @updatedAt @db.Timestamp()
+
+  username   String @unique @db.VarChar(100)
+  address_id Int    @unique
+
+  users     User    @relation(references: [username], fields: [username])
+  addresses Address @relation(fields: [address_id], references: [id])
+
+  products Product[]
+
+  @@index([name])
+  @@map("sellers")
+}
+
+model Category {
+  id         Int      @id @default(autoincrement())
+  name       String   @db.VarChar(100)
+  created_at DateTime @default(now()) @db.DateTime()
+  updated_at DateTime @updatedAt @db.Timestamp()
+
+  username String @db.VarChar(100)
+  users    User   @relation(references: [username], fields: [username])
+
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(100)
+  description String    @db.Text()
+  image_url   String    @db.VarChar(255)
+  price       Int       @db.UnsignedInt
+  stock       Int       @db.UnsignedInt
+  sku         String    @db.VarChar(100)
+  weight      Float     @db.Float()
+  condition   Condition
+  isDeleted   Boolean   @default(false)
+  created_at  DateTime  @default(now()) @db.DateTime()
+  updated_at  DateTime  @updatedAt @db.Timestamp()
+
+  seller_id   Int
+  category_id Int
+
+  sellers    Seller   @relation(fields: [seller_id], references: [id])
+  categories Category @relation(fields: [category_id], references: [id])
+
+  order_details OrderDetails[]
+  reviews       Review[]
+  wishlists     Wishlist[]
+  carts         Cart[]
+
+  @@index([name, sku])
+  @@map("products")
+}
+
+model Order {
+  id Int @id @default(autoincrement())
+
+  username String @db.VarChar(100)
+  users    User   @relation(fields: [username], references: [username])
+
+  address_id Int
+  addresses  Address @relation(fields: [address_id], references: [id])
+
+  order_details OrderDetails[]
+
+  @@map("orders")
+}
+
+model OrderDetails {
+  id         Int      @id @default(autoincrement())
+  quantity   Int      @db.UnsignedInt
+  price      Int      @db.UnsignedInt
+  status     Status   @default(PENDING)
+  created_at DateTime @default(now()) @db.DateTime()
+
+  updated_at DateTime @updatedAt @db.Timestamp()
+
+  product_id Int
+  products   Product @relation(fields: [product_id], references: [id])
+
+  order_id Int
+  orders   Order @relation(fields: [order_id], references: [id])
+
+  @@map("order_details")
+}
+
+model Review {
+  id         Int      @id @default(autoincrement())
+  rating     Int
+  summary    String?  @db.Text()
+  image_url  String?  @db.VarChar(255)
+  created_at DateTime @default(now()) @db.DateTime()
+  updated_at DateTime @updatedAt @db.Timestamp()
+
+  product_id Int
+  username   String @db.VarChar(100)
+
+  products Product @relation(fields: [product_id], references: [id])
+  users    User    @relation(fields: [username], references: [username])
+
+  @@unique([username, product_id])
+  @@map("reviews")
+}
+
+model Wishlist {
+  id         Int      @id @default(autoincrement())
+  created_at DateTime @default(now()) @db.DateTime()
+  updated_at DateTime @updatedAt @db.Timestamp()
+
+  username   String @db.VarChar(100)
+  product_id Int    @unique
+
+  users    User    @relation(fields: [username], references: [username])
+  products Product @relation(fields: [product_id], references: [id])
+
+  @@map("wishlists")
+}
+
+model Cart {
+  id         Int      @id @default(autoincrement())
+  quantity   Int      @default(1) @db.UnsignedInt
+  total      Int      @db.UnsignedInt
+  created_at DateTime @default(now()) @db.Timestamp()
+  updated_at DateTime @updatedAt @db.Timestamp()
+
+  product_id Int
+  username   String @db.VarChar(100)
+
+  products Product @relation(fields: [product_id], references: [id])
+  users    User    @relation(fields: [username], references: [username])
+
+  @@unique([username, product_id])
+  @@map("carts")
+}
