@@ -5,6 +5,7 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { RegisterUserRequest, UserResponse } from '../../model/user.model';
 import { ValidationService } from '../../common/validation.service';
 import { UserValidation } from './user.validation';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -50,6 +51,8 @@ export class UserService {
     await this.isUsernameAlreadyExists(registerRequest.username);
     await this.isEmailAlreadyExists(registerRequest.email);
     await this.isPhoneAlreadyExists(registerRequest.phone);
+
+    registerRequest.password = await bcrypt.hash(registerRequest.password, 10);
 
     return this.userRepository.register(registerRequest);
   }
