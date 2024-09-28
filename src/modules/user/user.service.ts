@@ -56,4 +56,10 @@ export class UserService {
 
     return this.userRepository.register(registerRequest);
   }
+
+  async get(username: string): Promise<UserResponse> {
+    this.logger.info(`Get user request: ${username}`);
+
+    return this.userRepository.get(username);
+  }
 }

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Post,
   UploadedFile,
   UseInterceptors,
@@ -10,6 +11,7 @@ import { ResponseModel } from '../../model/response.model';
 import { RegisterUserRequest, UserResponse } from '../../model/user.model';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from '../../common/cloudinary.service';
+import { Auth } from '../../common/auth.decorator';
 
 @Controller('/api/users')
 export class UserController {
@@ -35,6 +37,15 @@ export class UserController {
     }
 
     const result: UserResponse = await this.userService.register(req);
+
+    return {
+      data: result,
+    };
+  }
+
+  @Get()
+  async get(@Auth() username: string): Promise<ResponseModel<UserResponse>> {
+    const result: UserResponse = await this.userService.get(username);
 
     return {
       data: result,
