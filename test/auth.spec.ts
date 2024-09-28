@@ -4,6 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
 import { TestService } from './test.service';
 import { TestModule } from './test.module';
+import * as cookieParser from 'cookie-parser';
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication;
@@ -16,6 +17,8 @@ describe('AuthController (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     testService = app.get(TestService);
+
+    app.use(cookieParser());
 
     await app.init();
 
@@ -76,6 +79,29 @@ describe('AuthController (e2e)', () => {
       expect(response.status).toBe(401);
       expect(response.body.errors).toBe('email or password is wrong');
       expect(response.headers['set-cookie']).toBeUndefined();
+    });
+  });
+
+  describe('/api/logout (DELETE)', () => {
+    it('should can logout', async () => {
+      const response = await request(app.getHttpServer())
+        .delete('/api/logout')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data).toBe('OK');
+      expect(response.get('Set-Cookie')).toBeDefined();
+    });
+
+    it('should reject if cookie is invalid', async () => {
+      const response = await request(app.getHttpServer())
+        .patch('/api/current')
+        .set('Cookie', ['access_token=salah']);
+
+      expect(response.status).toBe(401);
+      expect(response.body.errors).toBe('unauthorized');
     });
   });
 });

@@ -18,7 +18,7 @@ export class AuthService {
   ) {}
 
   async login(req: LoginUserRequest): Promise<string> {
-    this.logger.info(`Login request: ${JSON.stringify(req)}`);
+    this.logger.info(`Login request: ${req.email}`);
     const loginRequest: LoginUserRequest = this.validationService.validate(
       AuthValidation.LOGIN,
       req,
@@ -41,5 +41,9 @@ export class AuthService {
     }
 
     return this.jwtService.sign({ username: isUserExists.username });
+  }
+
+  async logout(username: string): Promise<void> {
+    this.logger.info(`Logout request: ${username}`);
   }
 }

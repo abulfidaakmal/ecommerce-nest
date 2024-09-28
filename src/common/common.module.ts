@@ -1,4 +1,4 @@
-import { Global, Module } from '@nestjs/common';
+import { Global, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { WinstonModule } from 'nest-winston';
 import * as winston from 'winston';
 import { PrismaService } from './prisma.service';
@@ -7,6 +7,8 @@ import { CloudinaryService } from './cloudinary.service';
 import { v2 as cloudinary } from 'cloudinary';
 import { APP_FILTER } from '@nestjs/core';
 import { ErrorFilter } from './error.filter';
+import { AuthMiddleware } from './auth.middleware';
+import { JwtModule } from '@nestjs/jwt';
 
 @Global()
 @Module({
@@ -14,6 +16,9 @@ import { ErrorFilter } from './error.filter';
     WinstonModule.forRoot({
       level: 'info',
       transports: [new winston.transports.Console({})],
+    }),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET,
     }),
   ],
   providers: [
@@ -37,4 +42,8 @@ import { ErrorFilter } from './error.filter';
   ],
   exports: [PrismaService, ValidationService, CloudinaryService],
 })
-export class CommonModule {}
+export class CommonModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(AuthMiddleware).forRoutes('/api/*');
+  }
+}
