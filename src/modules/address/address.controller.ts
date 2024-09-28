@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Param,
   ParseIntPipe,
   Post,
@@ -43,6 +44,21 @@ export class AddressController {
       username,
       address_id,
       req,
+    );
+
+    return {
+      data: result,
+    };
+  }
+
+  @Delete('/:addressId')
+  async remove(
+    @Auth() username: string,
+    @Param('addressId', ParseIntPipe) address_id: number,
+  ): Promise<ResponseModel<string>> {
+    const result: string = await this.addressService.remove(
+      username,
+      address_id,
     );
 
     return {

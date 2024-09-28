@@ -161,4 +161,43 @@ describe('AddressController (e2e)', () => {
       expect(response.body.errors).toBe('address is not found');
     });
   });
+
+  describe('/api/addresses/:addressId (DELETE)', () => {
+    beforeEach(async () => {
+      await testService.createAddress();
+      await testService.createAddress();
+    });
+
+    it('should can remove address', async () => {
+      const addressId = await testService.getAddressId();
+      await testService.selectAddress(addressId);
+      const addressSelected = await testService.getAddressSelected();
+
+      expect(addressSelected).toBe(addressId);
+
+      const response = await request(app.getHttpServer())
+        .delete(`/api/addresses/${addressId}`)
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data).toBe('OK');
+
+      expect(await testService.getAddressSelected()).toBe(addressId + 1);
+    });
+
+    it('should reject if address is not found', async () => {
+      const addressId = await testService.getAddressId();
+
+      const response = await request(app.getHttpServer())
+        .delete(`/api/addresses/${addressId + 100}`)
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBe('address is not found');
+    });
+  });
 });

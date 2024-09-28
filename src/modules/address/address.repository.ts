@@ -66,4 +66,35 @@ export class AddressRepository {
       },
     });
   }
+
+  async remove(address_id: number): Promise<{ is_selected: boolean }> {
+    return this.prismaService.address.delete({
+      where: { id: address_id },
+      select: {
+        is_selected: true,
+      },
+    });
+  }
+
+  async anotherAddress(username: string): Promise<{ id: number }> {
+    return this.prismaService.address.findFirst({
+      where: { username },
+      select: { id: true },
+      orderBy: { id: 'asc' },
+    });
+  }
+
+  async selectAddress(username: string, address_id: number): Promise<void> {
+    await this.prismaService.$transaction(async (prisma) => {
+      await prisma.address.updateMany({
+        where: { username, is_selected: true },
+        data: { is_selected: false },
+      });
+
+      await prisma.address.update({
+        where: { username, id: address_id },
+        data: { is_selected: true },
+      });
+    });
+  }
 }

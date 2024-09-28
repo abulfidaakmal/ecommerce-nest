@@ -61,4 +61,25 @@ export class TestService {
 
     return address.id;
   }
+
+  async selectAddress(address_id: number) {
+    await this.prismaService.address.update({
+      where: {
+        username: 'test',
+        id: address_id,
+      },
+      data: {
+        is_selected: true,
+      },
+    });
+  }
+
+  async getAddressSelected() {
+    const address = await this.prismaService.address.findFirst({
+      where: { username: 'test', is_selected: true },
+      select: { id: true },
+    });
+
+    return address.id;
+  }
 }

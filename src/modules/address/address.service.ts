@@ -63,4 +63,22 @@ export class AddressService {
 
     return this.addressRepository.update(address_id, updateRequest);
   }
+
+  async remove(username: string, address_id: number): Promise<string> {
+    this.logger.info(`Remove address request: ${address_id}`);
+
+    await this.isAddressExist(username, address_id);
+
+    const address: { is_selected: boolean } =
+      await this.addressRepository.remove(address_id);
+
+    if (address.is_selected) {
+      const anotherAddress: { id: number } =
+        await this.addressRepository.anotherAddress(username);
+
+      await this.addressRepository.selectAddress(username, anotherAddress.id);
+    }
+
+    return 'OK';
+  }
 }
