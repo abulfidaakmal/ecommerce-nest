@@ -81,4 +81,14 @@ export class AddressService {
 
     return 'OK';
   }
+
+  async select(username: string, address_id: number): Promise<string> {
+    this.logger.info(`Select address request: ${address_id}`);
+
+    await this.isAddressExist(username, address_id);
+
+    await this.addressRepository.selectAddress(username, address_id);
+
+    return 'OK';
+  }
 }

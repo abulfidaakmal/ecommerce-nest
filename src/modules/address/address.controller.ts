@@ -4,6 +4,7 @@ import {
   Delete,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Put,
 } from '@nestjs/common';
@@ -57,6 +58,21 @@ export class AddressController {
     @Param('addressId', ParseIntPipe) address_id: number,
   ): Promise<ResponseModel<string>> {
     const result: string = await this.addressService.remove(
+      username,
+      address_id,
+    );
+
+    return {
+      data: result,
+    };
+  }
+
+  @Patch('/:addressId')
+  async select(
+    @Auth() username: string,
+    @Param('addressId', ParseIntPipe) address_id: number,
+  ): Promise<ResponseModel<string>> {
+    const result: string = await this.addressService.select(
       username,
       address_id,
     );
