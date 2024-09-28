@@ -10,4 +10,10 @@ export class AddressValidation {
     name: z.string().trim().min(3).max(100),
     phone: z.string().trim().min(4).max(20),
   });
+
+  static readonly SEARCH: ZodType = z.object({
+    search: z.string().min(1).optional(),
+    page: z.coerce.number().min(1).positive().default(1),
+    size: z.coerce.number().min(1).max(50).positive().default(10),
+  });
 }

@@ -21,3 +21,9 @@ export class CreateAddressRequest {
   phone: string;
   is_selected: boolean;
 }
+
+export class SearchAddressRequest {
+  search: string;
+  page: number;
+  size: number;
+}

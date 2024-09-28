@@ -6,8 +6,10 @@ import { AddressRepository } from './address.repository';
 import {
   AddressResponse,
   CreateAddressRequest,
+  SearchAddressRequest,
 } from '../../model/address.model';
 import { AddressValidation } from './address.validation';
+import { ResponseModel } from '../../model/response.model';
 
 @Injectable()
 export class AddressService {
@@ -46,6 +48,69 @@ export class AddressService {
     }
 
     return this.addressRepository.create(username, createRequest);
+  }
+
+  async search(
+    username: string,
+    req: SearchAddressRequest,
+  ): Promise<ResponseModel<AddressResponse[]>> {
+    this.logger.info(`Search address request: ${JSON.stringify(req)}`);
+    const searchRequest: SearchAddressRequest = this.validationService.validate(
+      AddressValidation.SEARCH,
+      req,
+    );
+
+    const where: { username: string; OR?: any } = {
+      username,
+    };
+
+    const search = searchRequest.search;
+
+    if (search) {
+      where.OR = [
+        {
+          name: {
+            contains: search,
+          },
+        },
+        {
+          phone: {
+            contains: search,
+          },
+        },
+        {
+          street: {
+            contains: search,
+          },
+        },
+      ];
+    }
+
+    const total_data = await this.addressRepository.getTotalAddress(where);
+
+    if (!total_data) {
+      throw new HttpException('address is not found', 404);
+    }
+
+    const current_page = searchRequest.page;
+    const size = searchRequest.size;
+    searchRequest.page = (current_page - 1) * size;
+    const total_page = Math.ceil(total_data / size);
+
+    const addresses: AddressResponse[] = await this.addressRepository.search(
+      where,
+      searchRequest,
+    );
+
+    return {
+      data: addresses,
+      paging: {
+        current_page,
+        size,
+        total_data,
+        total_page,
+      },
+    };
   }
 
   async update(

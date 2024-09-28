@@ -81,6 +81,98 @@ describe('AddressController (e2e)', () => {
     });
   });
 
+  describe('/api/addresses (GET)', () => {
+    beforeEach(async () => {
+      await testService.createAddress();
+      await testService.createAddress();
+    });
+
+    it('should can search address', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/addresses')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ])
+        .query({
+          search: 'tes',
+          page: 1,
+          size: 1,
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data[0].id).toBeDefined();
+      expect(response.body.data[0].street).toBe('test');
+      expect(response.body.data[0].city).toBe('test');
+      expect(response.body.data[0].province).toBe('test');
+      expect(response.body.data[0].postal_code).toBe('test');
+      expect(response.body.data[0].detail).toBe('test');
+      expect(response.body.data[0].is_selected).toBeDefined();
+      expect(response.body.data[0].is_sellers).toBeFalsy();
+      expect(response.body.data[0].name).toBe('test');
+      expect(response.body.data[0].phone).toBe('test');
+      expect(response.body.paging.current_page).toBe(1);
+      expect(response.body.paging.size).toBe(1);
+      expect(response.body.paging.total_data).toBe(2);
+      expect(response.body.paging.total_page).toBe(2);
+    });
+
+    it('should can search address if the query does not exists', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/addresses')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data[0].id).toBeDefined();
+      expect(response.body.data[0].street).toBe('test');
+      expect(response.body.data[0].city).toBe('test');
+      expect(response.body.data[0].province).toBe('test');
+      expect(response.body.data[0].postal_code).toBe('test');
+      expect(response.body.data[0].detail).toBe('test');
+      expect(response.body.data[0].is_selected).toBeDefined();
+      expect(response.body.data[0].is_sellers).toBeFalsy();
+      expect(response.body.data[0].name).toBe('test');
+      expect(response.body.data[0].phone).toBe('test');
+      expect(response.body.paging.current_page).toBe(1);
+      expect(response.body.paging.size).toBe(10);
+      expect(response.body.paging.total_data).toBe(2);
+      expect(response.body.paging.total_page).toBe(1);
+    });
+
+    it('should reject if request is not valid', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/addresses')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ])
+        .query({
+          search: '',
+          page: 0,
+          size: 0,
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.errors).toBeDefined();
+    });
+
+    it('should reject if address is not found', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/addresses')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ])
+        .query({
+          search: 'not_found',
+          page: 1,
+          size: 1,
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBe('address is not found');
+    });
+  });
+
   describe('/api/addresses/:addressId (PUT)', () => {
     beforeEach(async () => {
       await testService.createAddress();

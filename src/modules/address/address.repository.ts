@@ -3,6 +3,7 @@ import { PrismaService } from '../../common/prisma.service';
 import {
   AddressResponse,
   CreateAddressRequest,
+  SearchAddressRequest,
 } from '../../model/address.model';
 
 @Injectable()
@@ -36,6 +37,49 @@ export class AddressRepository {
         is_selected: true,
         is_sellers: true,
       },
+    });
+  }
+
+  async getTotalAddress(where: {
+    username: string;
+    OR?: any;
+  }): Promise<number> {
+    return this.prismaService.address.count({
+      where,
+    });
+  }
+
+  async search(
+    where: {
+      username: string;
+      OR?: any;
+    },
+    req: SearchAddressRequest,
+  ): Promise<AddressResponse[]> {
+    return this.prismaService.address.findMany({
+      where,
+      select: {
+        id: true,
+        street: true,
+        city: true,
+        province: true,
+        postal_code: true,
+        detail: true,
+        name: true,
+        phone: true,
+        is_selected: true,
+        is_sellers: true,
+      },
+      orderBy: [
+        {
+          is_sellers: 'desc',
+        },
+        {
+          is_selected: 'desc',
+        },
+      ],
+      skip: req.page,
+      take: req.size,
     });
   }
 

@@ -1,18 +1,22 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
+  Get,
   Param,
   ParseIntPipe,
   Patch,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { AddressService } from './address.service';
 import { Auth } from '../../common/auth.decorator';
 import {
   AddressResponse,
   CreateAddressRequest,
+  SearchAddressRequest,
 } from '../../model/address.model';
 import { ResponseModel } from '../../model/response.model';
 
@@ -33,6 +37,18 @@ export class AddressController {
     return {
       data: result,
     };
+  }
+
+  @Get()
+  async search(
+    @Auth() username: string,
+    @Query('search') search: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('size', new DefaultValuePipe(10), ParseIntPipe) size: number,
+  ): Promise<ResponseModel<AddressResponse[]>> {
+    const req: SearchAddressRequest = { search, page, size };
+
+    return this.addressService.search(username, req);
   }
 
   @Put('/:addressId')
