@@ -2,7 +2,11 @@ import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { Logger } from 'winston';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
-import { RegisterUserRequest, UserResponse } from '../../model/user.model';
+import {
+  RegisterUserRequest,
+  UpdateUserRequest,
+  UserResponse,
+} from '../../model/user.model';
 import { ValidationService } from '../../common/validation.service';
 import { UserValidation } from './user.validation';
 import * as bcrypt from 'bcrypt';
@@ -61,5 +65,26 @@ export class UserService {
     this.logger.info(`Get user request: ${username}`);
 
     return this.userRepository.get(username);
+  }
+
+  async update(
+    username: string,
+    req: UpdateUserRequest,
+  ): Promise<UserResponse> {
+    this.logger.info(`Update user request: ${JSON.stringify(req)}`);
+    const updateRequest: UpdateUserRequest = this.validationService.validate(
+      UserValidation.UPDATE,
+      req,
+    );
+
+    if (updateRequest.email) {
+      await this.isEmailAlreadyExists(updateRequest.email);
+    }
+
+    if (updateRequest.phone) {
+      await this.isPhoneAlreadyExists(updateRequest.phone);
+    }
+
+    return this.userRepository.update(username, req);
   }
 }

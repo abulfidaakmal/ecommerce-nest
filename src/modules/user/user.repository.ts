@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
-import { RegisterUserRequest, UserResponse } from '../../model/user.model';
+import {
+  RegisterUserRequest,
+  UpdateUserRequest,
+  UserResponse,
+} from '../../model/user.model';
 
 @Injectable()
 export class UserRepository {
@@ -47,6 +51,30 @@ export class UserRepository {
   async get(username: string): Promise<UserResponse> {
     return this.prismaService.user.findFirst({
       where: { username },
+      select: {
+        username: true,
+        first_name: true,
+        last_name: true,
+        email: true,
+        phone: true,
+        birth_of_date: true,
+        gender: true,
+        avatar: true,
+        role: true,
+        has_been_seller: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
+  }
+
+  async update(
+    username: string,
+    req: UpdateUserRequest,
+  ): Promise<UserResponse> {
+    return this.prismaService.user.update({
+      where: { username },
+      data: req,
       select: {
         username: true,
         first_name: true,

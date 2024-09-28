@@ -180,4 +180,85 @@ describe('UserController (e2e)', () => {
       expect(response.body.errors).toBe('unauthorized');
     });
   });
+
+  describe('/api/users (PATCH)', () => {
+    beforeEach(async () => {
+      await testService.createUser();
+    });
+
+    afterEach(async () => {
+      await testService.removeAllUser();
+    });
+
+    it('should can update user', async () => {
+      const response = await request(app.getHttpServer())
+        .patch('/api/users')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ])
+        .field({
+          email: 'budi@gmail.com',
+          phone: '123456',
+        })
+        .attach('avatar', 'test/test.png');
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.username).toBe('test');
+      expect(response.body.data.first_name).toBe('test');
+      expect(response.body.data.last_name).toBe('test');
+      expect(response.body.data.phone).toBe('123456');
+      expect(response.body.data.email).toBe('budi@gmail.com');
+      expect(response.body.data.birth_of_date).toBe('2006-06-09T00:00:00.000Z');
+      expect(response.body.data.gender).toBe('MALE');
+      expect(response.body.data.avatar).toBeDefined();
+      expect(response.body.data.role).toBe('USER');
+      expect(response.body.data.has_been_seller).toBe(false);
+      expect(response.body.data.created_at).toBeDefined();
+      expect(response.body.data.updated_at).toBeDefined();
+    });
+
+    it('should reject if request is not valid', async () => {
+      const response = await request(app.getHttpServer())
+        .patch('/api/users')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ])
+        .send({
+          first_name: ' ',
+          last_name: ' ',
+          email: ' ',
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.errors).toBeDefined();
+    });
+
+    it('should reject if email already exists', async () => {
+      const response = await request(app.getHttpServer())
+        .patch('/api/users')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ])
+        .send({
+          email: 'test@gmail.com',
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.errors).toBe('email already exists');
+    });
+
+    it('should reject if phone already exists', async () => {
+      const response = await request(app.getHttpServer())
+        .patch('/api/users')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ])
+        .send({
+          phone: '092019101',
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.errors).toBe('phone already exists');
+    });
+  });
 });

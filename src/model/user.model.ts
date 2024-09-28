@@ -26,3 +26,11 @@ export class RegisterUserRequest {
   gender: Gender;
   avatar: string;
 }
+
+export class UpdateUserRequest {
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone?: string;
+  avatar?: string;
+}
