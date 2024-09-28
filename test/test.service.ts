@@ -29,4 +29,12 @@ export class TestService {
       },
     });
   }
+
+  async removeAllAddress() {
+    await this.prismaService.address.deleteMany({
+      where: {
+        username: 'test',
+      },
+    });
+  }
 }
