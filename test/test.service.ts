@@ -37,4 +37,28 @@ export class TestService {
       },
     });
   }
+
+  async createAddress() {
+    await this.prismaService.address.create({
+      data: {
+        street: 'test',
+        city: 'test',
+        province: 'test',
+        postal_code: 'test',
+        detail: 'test',
+        name: 'test',
+        phone: 'test',
+        username: 'test',
+      },
+    });
+  }
+
+  async getAddressId() {
+    const address = await this.prismaService.address.findFirst({
+      where: { username: 'test' },
+      select: { id: true },
+    });
+
+    return address.id;
+  }
 }

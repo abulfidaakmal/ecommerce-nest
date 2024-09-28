@@ -80,4 +80,85 @@ describe('AddressController (e2e)', () => {
       expect(response.body.errors).toBeDefined();
     });
   });
+
+  describe('/api/addresses/:addressId (PUT)', () => {
+    beforeEach(async () => {
+      await testService.createAddress();
+    });
+
+    it('should can update address', async () => {
+      const addressId = await testService.getAddressId();
+
+      const response = await request(app.getHttpServer())
+        .put(`/api/addresses/${addressId}`)
+        .send({
+          street: 'street',
+          city: 'city',
+          province: 'province',
+          postal_code: '101010',
+          detail: 'detail',
+          name: 'budi',
+          phone: '098765432',
+        })
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.id).toBeDefined();
+      expect(response.body.data.street).toBe('street');
+      expect(response.body.data.city).toBe('city');
+      expect(response.body.data.province).toBe('province');
+      expect(response.body.data.postal_code).toBe('101010');
+      expect(response.body.data.detail).toBe('detail');
+      expect(response.body.data.is_selected).toBeDefined();
+      expect(response.body.data.is_sellers).toBeFalsy();
+      expect(response.body.data.name).toBe('budi');
+      expect(response.body.data.phone).toBe('098765432');
+    });
+
+    it('should reject if request is not valid', async () => {
+      const addressId = await testService.getAddressId();
+
+      const response = await request(app.getHttpServer())
+        .put(`/api/addresses/${addressId}`)
+        .send({
+          street: '',
+          city: '',
+          province: '',
+          postal_code: '',
+          detail: '',
+          name: '',
+          phone: '',
+        })
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(400);
+      expect(response.body.errors).toBeDefined();
+    });
+
+    it('should reject if address is not found', async () => {
+      const addressId = await testService.getAddressId();
+
+      const response = await request(app.getHttpServer())
+        .put(`/api/addresses/${addressId + 100}`)
+        .send({
+          street: 'street',
+          city: 'city',
+          province: 'province',
+          postal_code: '101010',
+          detail: 'detail',
+          name: 'budi',
+          phone: '098765432',
+        })
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBe('address is not found');
+    });
+  });
 });

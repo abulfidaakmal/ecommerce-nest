@@ -38,4 +38,32 @@ export class AddressRepository {
       },
     });
   }
+
+  async isAddressExist(username: string, address_id: number): Promise<number> {
+    return this.prismaService.address.count({
+      where: { username, id: address_id },
+    });
+  }
+
+  async update(
+    address_id: number,
+    req: CreateAddressRequest,
+  ): Promise<AddressResponse> {
+    return this.prismaService.address.update({
+      where: { id: address_id },
+      data: req,
+      select: {
+        id: true,
+        street: true,
+        city: true,
+        province: true,
+        postal_code: true,
+        detail: true,
+        name: true,
+        phone: true,
+        is_selected: true,
+        is_sellers: true,
+      },
+    });
+  }
 }

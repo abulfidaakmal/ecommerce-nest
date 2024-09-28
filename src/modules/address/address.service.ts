@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { HttpException, Inject, Injectable } from '@nestjs/common';
 import { Logger } from 'winston';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { ValidationService } from '../../common/validation.service';
@@ -16,6 +16,17 @@ export class AddressService {
     private readonly addressRepository: AddressRepository,
     private readonly validationService: ValidationService,
   ) {}
+
+  async isAddressExist(username: string, address_id: number): Promise<void> {
+    const isAddressExist = await this.addressRepository.isAddressExist(
+      username,
+      address_id,
+    );
+
+    if (!isAddressExist) {
+      throw new HttpException('address is not found', 404);
+    }
+  }
 
   async create(
     username: string,
@@ -35,5 +46,21 @@ export class AddressService {
     }
 
     return this.addressRepository.create(username, createRequest);
+  }
+
+  async update(
+    username: string,
+    address_id: number,
+    req: CreateAddressRequest,
+  ): Promise<AddressResponse> {
+    this.logger.info(`Update address request: ${JSON.stringify(req)}`);
+    const updateRequest: CreateAddressRequest = this.validationService.validate(
+      AddressValidation.CREATE,
+      req,
+    );
+
+    await this.isAddressExist(username, address_id);
+
+    return this.addressRepository.update(address_id, updateRequest);
   }
 }
