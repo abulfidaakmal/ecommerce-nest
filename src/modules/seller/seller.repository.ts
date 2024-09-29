@@ -99,4 +99,34 @@ export class SellerRepository {
       });
     });
   }
+
+  async isSellerExists(username: string): Promise<{ isDeleted: boolean }> {
+    return this.prismaService.seller.findFirst({
+      where: { username },
+      select: { isDeleted: true },
+    });
+  }
+
+  async reactivate(username: string): Promise<SellerResponse> {
+    return this.prismaService.$transaction(async (prisma) => {
+      const seller = await prisma.seller.update({
+        where: { username, isDeleted: true },
+        data: { isDeleted: false },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          created_at: true,
+          updated_at: true,
+        },
+      });
+
+      await prisma.user.update({
+        where: { username },
+        data: { role: 'SELLER' },
+      });
+
+      return seller;
+    });
+  }
 }

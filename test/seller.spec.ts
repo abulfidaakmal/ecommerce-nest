@@ -338,4 +338,54 @@ describe('SellerController (e2e)', () => {
       expect(response.body.errors).toBe('forbidden');
     });
   });
+
+  describe('/api/sellers/reactivate (PATCH)', () => {
+    it('should can reactivate seller', async () => {
+      await testService.createSeller();
+      await testService.deactivateSeller();
+      let checkRole = await testService.getUserRole();
+
+      expect(checkRole.role).toBe('USER');
+
+      const response = await request(app.getHttpServer())
+        .patch('/api/sellers/reactivate')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.id).toBeDefined();
+      expect(response.body.data.name).toBe('test');
+      expect(response.body.data.description).toBe('test');
+      expect(response.body.data.created_at).toBeDefined();
+      expect(response.body.data.updated_at).toBeDefined();
+
+      checkRole = await testService.getUserRole();
+      expect(checkRole.role).toBe('SELLER');
+    });
+
+    it('should reject if seller is not found', async () => {
+      const response = await request(app.getHttpServer())
+        .patch('/api/sellers/reactivate')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBe('seller is not found');
+    });
+
+    it('should reject if seller already active', async () => {
+      await testService.createSeller();
+
+      const response = await request(app.getHttpServer())
+        .patch('/api/sellers/reactivate')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(409);
+      expect(response.body.errors).toBe('seller already active');
+    });
+  });
 });

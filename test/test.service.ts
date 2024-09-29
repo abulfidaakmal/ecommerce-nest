@@ -131,4 +131,11 @@ export class TestService {
       },
     });
   }
+
+  async deactivateSeller() {
+    await this.prismaService.seller.update({
+      where: { username: 'test' },
+      data: { isDeleted: true },
+    });
+  }
 }

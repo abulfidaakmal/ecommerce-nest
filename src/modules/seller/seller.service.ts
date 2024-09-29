@@ -82,4 +82,20 @@ export class SellerService {
 
     return 'OK';
   }
+
+  async reactivate(username: string): Promise<SellerResponse> {
+    this.logger.info(`Reactivate seller request: ${username}`);
+
+    const isSellerExists = await this.sellerRepository.isSellerExists(username);
+
+    if (!isSellerExists) {
+      throw new HttpException('seller is not found', 404);
+    }
+
+    if (!isSellerExists.isDeleted) {
+      throw new HttpException('seller already active', 409);
+    }
+
+    return this.sellerRepository.reactivate(username);
+  }
 }

@@ -63,4 +63,16 @@ export class SellerController {
       data: result,
     };
   }
+
+  @Patch('/reactivate')
+  async reactivate(
+    @Auth() username: string,
+  ): Promise<ResponseModel<SellerResponse>> {
+    const result: SellerResponse =
+      await this.sellerService.reactivate(username);
+
+    return {
+      data: result,
+    };
+  }
 }
