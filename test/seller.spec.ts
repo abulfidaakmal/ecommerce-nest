@@ -186,4 +186,118 @@ describe('SellerController (e2e)', () => {
       expect(response.body.errors).toBe('forbidden');
     });
   });
+
+  describe('/api/sellers (PATCH)', () => {
+    beforeEach(async () => {
+      await testService.createSeller();
+    });
+
+    it('should can update seller name', async () => {
+      await testService.updateUserToSellerRole();
+
+      const response = await request(app.getHttpServer())
+        .patch('/api/sellers')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ])
+        .send({
+          name: 'name',
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.id).toBeDefined();
+      expect(response.body.data.name).toBe('name');
+      expect(response.body.data.description).toBe('test');
+      expect(response.body.data.created_at).toBeDefined();
+      expect(response.body.data.updated_at).toBeDefined();
+    });
+
+    it('should can update seller description', async () => {
+      await testService.updateUserToSellerRole();
+
+      const response = await request(app.getHttpServer())
+        .patch('/api/sellers')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ])
+        .send({
+          description: 'description',
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.id).toBeDefined();
+      expect(response.body.data.name).toBe('test');
+      expect(response.body.data.description).toBe('description');
+      expect(response.body.data.created_at).toBeDefined();
+      expect(response.body.data.updated_at).toBeDefined();
+    });
+
+    it('should can update seller name and description', async () => {
+      await testService.updateUserToSellerRole();
+
+      const response = await request(app.getHttpServer())
+        .patch('/api/sellers')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ])
+        .send({
+          name: 'name',
+          description: 'description',
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.id).toBeDefined();
+      expect(response.body.data.name).toBe('name');
+      expect(response.body.data.description).toBe('description');
+      expect(response.body.data.created_at).toBeDefined();
+      expect(response.body.data.updated_at).toBeDefined();
+    });
+
+    it('should reject if name already exists', async () => {
+      await testService.updateUserToSellerRole();
+
+      const response = await request(app.getHttpServer())
+        .patch('/api/sellers')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ])
+        .send({
+          name: 'test',
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.errors).toBe('name already exists');
+    });
+
+    it('should reject if request is not valid', async () => {
+      await testService.updateUserToSellerRole();
+
+      const response = await request(app.getHttpServer())
+        .patch('/api/sellers')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ])
+        .send({
+          name: '',
+          description: '',
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.errors).toBeDefined();
+    });
+
+    it('should reject if the role is USER', async () => {
+      const response = await request(app.getHttpServer())
+        .patch('/api/sellers')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ])
+        .send({
+          name: 'name',
+        });
+
+      expect(response.status).toBe(403);
+      expect(response.body.errors).toBe('forbidden');
+    });
+  });
 });

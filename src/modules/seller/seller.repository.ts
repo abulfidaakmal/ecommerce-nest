@@ -3,6 +3,7 @@ import { PrismaService } from '../../common/prisma.service';
 import {
   RegisterSellerRequest,
   SellerResponse,
+  UpdateSellerRequest,
 } from '../../model/seller.model';
 
 @Injectable()
@@ -58,6 +59,23 @@ export class SellerRepository {
         username,
         isDeleted: false,
       },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
+  }
+
+  async update(
+    username: string,
+    req: UpdateSellerRequest,
+  ): Promise<SellerResponse> {
+    return this.prismaService.seller.update({
+      where: { username },
+      data: req,
       select: {
         id: true,
         name: true,

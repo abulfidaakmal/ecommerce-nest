@@ -11,3 +11,8 @@ export class RegisterSellerRequest {
   description: string;
   address_id: number;
 }
+
+export class UpdateSellerRequest {
+  name?: string;
+  description?: string;
+}

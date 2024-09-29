@@ -6,4 +6,9 @@ export class SellerValidation {
     description: z.string().trim().min(10),
     address_id: z.coerce.number().min(1).positive(),
   });
+
+  static readonly UPDATE: ZodType = z.object({
+    name: z.string().trim().min(3).max(100).optional(),
+    description: z.string().trim().min(10).optional(),
+  });
 }

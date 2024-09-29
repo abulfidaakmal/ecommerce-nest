@@ -6,6 +6,7 @@ import { ValidationService } from '../../common/validation.service';
 import {
   RegisterSellerRequest,
   SellerResponse,
+  UpdateSellerRequest,
 } from '../../model/seller.model';
 import { SellerValidation } from './seller.validation';
 import { AddressService } from '../address/address.service';
@@ -55,5 +56,22 @@ export class SellerService {
     this.logger.info(`Get seller request: ${username}`);
 
     return this.sellerRepository.get(username);
+  }
+
+  async update(
+    username: string,
+    req: UpdateSellerRequest,
+  ): Promise<SellerResponse> {
+    this.logger.info(`Update seller request: ${JSON.stringify(req)}`);
+    const updateRequest: UpdateSellerRequest = this.validationService.validate(
+      SellerValidation.UPDATE,
+      req,
+    );
+
+    if (updateRequest.name) {
+      await this.isNameAlreadyExists(updateRequest.name);
+    }
+
+    return this.sellerRepository.update(username, updateRequest);
   }
 }
