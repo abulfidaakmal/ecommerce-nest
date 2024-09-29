@@ -82,4 +82,43 @@ export class TestService {
 
     return address.id;
   }
+
+  async removeAllSeller() {
+    await this.prismaService.seller.deleteMany({
+      where: { username: 'test' },
+    });
+  }
+
+  async createSeller() {
+    const addressId = await this.getAddressId();
+
+    await this.prismaService.seller.create({
+      data: {
+        username: 'test',
+        name: 'test',
+        description: 'test',
+        address_id: addressId,
+      },
+    });
+  }
+
+  async getUserRole() {
+    return this.prismaService.user.findFirst({
+      where: { username: 'test' },
+      select: {
+        role: true,
+        has_been_seller: true,
+      },
+    });
+  }
+
+  async updateUserToSellerRole() {
+    await this.prismaService.user.update({
+      where: { username: 'test' },
+      data: {
+        role: 'SELLER',
+        has_been_seller: true,
+      },
+    });
+  }
 }
