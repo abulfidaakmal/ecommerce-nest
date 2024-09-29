@@ -121,4 +121,14 @@ export class TestService {
       },
     });
   }
+
+  async updateUserToAdminRole() {
+    await this.prismaService.user.update({
+      where: { username: 'test' },
+      data: {
+        role: 'ADMIN',
+        has_been_seller: true,
+      },
+    });
+  }
 }

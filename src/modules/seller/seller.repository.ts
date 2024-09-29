@@ -51,4 +51,20 @@ export class SellerRepository {
       return seller;
     });
   }
+
+  async get(username: string): Promise<SellerResponse> {
+    return this.prismaService.seller.findFirst({
+      where: {
+        username,
+        isDeleted: false,
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
+  }
 }

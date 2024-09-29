@@ -50,4 +50,10 @@ export class SellerService {
 
     return this.sellerRepository.register(username, registerRequest);
   }
+
+  async get(username: string): Promise<SellerResponse> {
+    this.logger.info(`Get seller request: ${username}`);
+
+    return this.sellerRepository.get(username);
+  }
 }
