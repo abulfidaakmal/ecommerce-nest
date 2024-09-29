@@ -85,4 +85,18 @@ export class SellerRepository {
       },
     });
   }
+
+  async remove(username: string): Promise<void> {
+    await this.prismaService.$transaction(async (prisma) => {
+      await prisma.seller.update({
+        where: { username },
+        data: { isDeleted: true },
+      });
+
+      await prisma.user.update({
+        where: { username },
+        data: { role: 'USER' },
+      });
+    });
+  }
 }

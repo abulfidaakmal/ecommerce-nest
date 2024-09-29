@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Patch, Post } from '@nestjs/common';
 import { SellerService } from './seller.service';
 import { Auth } from '../../common/auth.decorator';
 import {
@@ -48,6 +48,16 @@ export class SellerController {
       username,
       req,
     );
+
+    return {
+      data: result,
+    };
+  }
+
+  @Delete()
+  @Roles('SELLER', 'ADMIN')
+  async remove(@Auth() username: string): Promise<ResponseModel<string>> {
+    const result: string = await this.sellerService.remove(username);
 
     return {
       data: result,

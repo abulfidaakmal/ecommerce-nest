@@ -74,4 +74,12 @@ export class SellerService {
 
     return this.sellerRepository.update(username, updateRequest);
   }
+
+  async remove(username: string): Promise<string> {
+    this.logger.info(`Remove seller request: ${username}`);
+
+    await this.sellerRepository.remove(username);
+
+    return 'OK';
+  }
 }

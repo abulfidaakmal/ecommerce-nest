@@ -300,4 +300,42 @@ describe('SellerController (e2e)', () => {
       expect(response.body.errors).toBe('forbidden');
     });
   });
+
+  describe('/api/sellers (DELETE)', () => {
+    beforeEach(async () => {
+      await testService.createSeller();
+    });
+
+    it('should can remove seller', async () => {
+      await testService.updateUserToSellerRole();
+      let checkRole = await testService.getUserRole();
+
+      expect(checkRole.role).toBe('SELLER');
+      expect(checkRole.has_been_seller).toBeTruthy();
+
+      const response = await request(app.getHttpServer())
+        .delete('/api/sellers')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data).toBe('OK');
+
+      checkRole = await testService.getUserRole();
+      expect(checkRole.role).toBe('USER');
+      expect(checkRole.has_been_seller).toBeTruthy();
+    });
+
+    it('should reject if the role is USER', async () => {
+      const response = await request(app.getHttpServer())
+        .delete('/api/sellers')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(403);
+      expect(response.body.errors).toBe('forbidden');
+    });
+  });
 });
