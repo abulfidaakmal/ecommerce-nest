@@ -9,3 +9,8 @@ export class CategoryResponse {
 export class CreateCategoryRequest {
   name: string;
 }
+
+export class GetAllCategoryRequest {
+  page?: number;
+  size?: number;
+}
