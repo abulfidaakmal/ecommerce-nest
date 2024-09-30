@@ -59,6 +59,7 @@ model User {
   addresses  Address[]
   sellers    Seller?
   categories Category[]
+  products   Product[]
   orders     Order[]
   reviews    Review[]
   wishlists  Wishlist[]
@@ -103,8 +104,6 @@ model Seller {
   users     User    @relation(references: [username], fields: [username])
   addresses Address @relation(fields: [address_id], references: [id])
 
-  products Product[]
-
   @@index([name])
   @@map("sellers")
 }
@@ -137,10 +136,10 @@ model Product {
   created_at  DateTime  @default(now()) @db.DateTime()
   updated_at  DateTime  @updatedAt @db.Timestamp()
 
-  seller_id   Int
+  username    String @db.VarChar(100)
   category_id Int
 
-  sellers    Seller   @relation(fields: [seller_id], references: [id])
+  users      User     @relation(references: [username], fields: [username])
   categories Category @relation(fields: [category_id], references: [id])
 
   order_details OrderDetails[]
