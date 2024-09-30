@@ -153,4 +153,12 @@ export class TestService {
       },
     });
   }
+
+  async getCategoryId() {
+    const category = await this.prismaService.category.findFirst({
+      select: { id: true },
+    });
+
+    return category.id;
+  }
 }

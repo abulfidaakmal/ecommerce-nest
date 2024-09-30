@@ -3,7 +3,9 @@ import {
   Controller,
   DefaultValuePipe,
   Get,
+  Param,
   ParseIntPipe,
+  Patch,
   Post,
   Query,
 } from '@nestjs/common';
@@ -47,5 +49,22 @@ export class CategoryController {
     const req: GetAllCategoryRequest = { page, size };
 
     return this.categoryService.getAll(req);
+  }
+
+  @Patch('/:categoryId')
+  @Roles('ADMIN')
+  async update(
+    @Auth() username: string,
+    @Param('categoryId', ParseIntPipe) category_id: number,
+    @Body() req: CreateCategoryRequest,
+  ): Promise<ResponseModel<CategoryResponse>> {
+    const result: CategoryResponse = await this.categoryService.update(
+      category_id,
+      req,
+    );
+
+    return {
+      data: result,
+    };
   }
 }

@@ -27,6 +27,14 @@ export class CategoryService {
     }
   }
 
+  async isCategoryExists(category_id: number): Promise<void> {
+    const check = await this.categoryRepository.isCategoryExists(category_id);
+
+    if (!check) {
+      throw new HttpException('category is not found', 404);
+    }
+  }
+
   async create(
     username: string,
     req: CreateCategoryRequest,
@@ -70,5 +78,18 @@ export class CategoryService {
         total_page,
       },
     };
+  }
+
+  async update(
+    category_id: number,
+    req: CreateCategoryRequest,
+  ): Promise<CategoryResponse> {
+    this.logger.info(`Update category request: ${JSON.stringify(req)}`);
+    const updateRequest: CreateCategoryRequest =
+      this.validationService.validate(CategoryValidation.CREATE, req);
+
+    await this.isCategoryExists(category_id);
+
+    return this.categoryRepository.update(category_id, updateRequest);
   }
 }

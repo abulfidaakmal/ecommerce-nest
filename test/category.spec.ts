@@ -168,4 +168,76 @@ describe('CategoryController (e2e)', () => {
       expect(response.body.errors).toBe('forbidden');
     });
   });
+
+  describe('/api/categories/:categoryId (PATCH)', () => {
+    beforeEach(async () => {
+      await testService.createCategory();
+    });
+
+    it('should can update category', async () => {
+      await testService.updateUserToAdminRole();
+      const categoryId = await testService.getCategoryId();
+
+      const response = await request(app.getHttpServer())
+        .patch(`/api/categories/${categoryId}`)
+        .send({
+          name: 'example',
+        })
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.id).toBeDefined();
+      expect(response.body.data.name).toBe('example');
+      expect(response.body.data.username).toBe('test');
+      expect(response.body.data.created_at).toBeDefined();
+      expect(response.body.data.updated_at).toBeDefined();
+    });
+
+    it('should reject if request is not valid', async () => {
+      await testService.updateUserToAdminRole();
+      const categoryId = await testService.getCategoryId();
+
+      const response = await request(app.getHttpServer())
+        .patch(`/api/categories/${categoryId}`)
+        .send({
+          name: '',
+        })
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(400);
+      expect(response.body.errors).toBeDefined();
+    });
+
+    it('should reject if category is not found', async () => {
+      await testService.updateUserToAdminRole();
+      const categoryId = await testService.getCategoryId();
+
+      const response = await request(app.getHttpServer())
+        .patch(`/api/categories/${categoryId + 100}`)
+        .send({
+          name: 'example',
+        })
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBe('category is not found');
+    });
+
+    it('should reject if the role is not ADMIN', async () => {
+      const response = await request(app.getHttpServer())
+        .patch('/api/categories/1')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(403);
+      expect(response.body.errors).toBe('forbidden');
+    });
+  });
 });

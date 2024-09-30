@@ -52,4 +52,27 @@ export class CategoryRepository {
   async getTotalCategory(): Promise<number> {
     return this.prismaService.category.count({});
   }
+
+  async isCategoryExists(category_id: number): Promise<number> {
+    return this.prismaService.category.count({
+      where: { id: category_id },
+    });
+  }
+
+  async update(
+    category_id: number,
+    req: CreateCategoryRequest,
+  ): Promise<CategoryResponse> {
+    return this.prismaService.category.update({
+      where: { id: category_id },
+      data: req,
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
+  }
 }
