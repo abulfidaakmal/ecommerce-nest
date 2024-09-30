@@ -7,6 +7,7 @@ import { AddressModule } from './modules/address/address.module';
 import { SellerModule } from './modules/seller/seller.module';
 import { APP_GUARD } from '@nestjs/core';
 import { RoleGuard } from './common/role.guard';
+import { CategoryModule } from './modules/category/category.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { RoleGuard } from './common/role.guard';
     AuthModule,
     AddressModule,
     SellerModule,
+    CategoryModule,
   ],
   controllers: [],
   providers: [

@@ -138,4 +138,19 @@ export class TestService {
       data: { isDeleted: true },
     });
   }
+
+  async removeAllCategory() {
+    await this.prismaService.category.deleteMany({
+      where: { username: 'test' },
+    });
+  }
+
+  async createCategory() {
+    await this.prismaService.category.create({
+      data: {
+        username: 'test',
+        name: 'test',
+      },
+    });
+  }
 }
