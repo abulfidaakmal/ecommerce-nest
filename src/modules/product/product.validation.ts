@@ -11,4 +11,15 @@ export class ProductValidation {
     condition: z.enum(['NEW', 'USED', 'REFURBISHED']),
     category_id: z.coerce.number().positive(),
   });
+
+  static readonly UPDATE: ZodType = z.object({
+    name: z.string().trim().min(5).max(100).optional(),
+    description: z.string().trim().min(20).optional(),
+    image_url: z.string().max(255).optional(),
+    price: z.coerce.number().min(1).optional(),
+    stock: z.coerce.number().min(1).optional(),
+    weight: z.coerce.number().min(1).optional(),
+    condition: z.enum(['NEW', 'USED', 'REFURBISHED']).optional(),
+    category_id: z.coerce.number().positive().optional(),
+  });
 }

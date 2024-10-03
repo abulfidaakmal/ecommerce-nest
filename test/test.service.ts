@@ -180,7 +180,7 @@ export class TestService {
         index: this.index,
         query: {
           match: {
-            name: 'test123',
+            description: 'this is an example of a field description',
           },
         },
       });
@@ -200,7 +200,7 @@ export class TestService {
       index: this.index,
       query: {
         match: {
-          name: 'test123',
+          description: 'this is an example of a field description',
         },
       },
     });
@@ -233,5 +233,42 @@ export class TestService {
     });
 
     return product.id;
+  }
+
+  async createProduct() {
+    const categoryId = await this.getCategoryId();
+
+    await this.prismaService.$transaction(async (prisma) => {
+      const product = await prisma.product.create({
+        data: {
+          name: 'test',
+          description: 'this is an example of a field description',
+          price: 1000,
+          stock: 1,
+          category_id: categoryId,
+          weight: 1000,
+          condition: 'NEW',
+          sku: 'test',
+          image_url: 'test',
+          username: 'test',
+        },
+      });
+
+      await this.elasticsearchService.index({
+        index: this.index,
+        id: product.id.toString(),
+        document: {
+          name: product.name,
+          description: product.description,
+          price: product.price,
+          image_url: product.image_url,
+          isDeleted: false,
+        },
+      });
+
+      await this.elasticsearchService.indices.refresh({
+        index: this.index,
+      });
+    });
   }
 }

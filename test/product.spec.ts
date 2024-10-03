@@ -186,4 +186,129 @@ describe('ProductController (e2e)', () => {
       expect(response.body.errors).toBe('product is not found');
     });
   });
+
+  describe('/api/products/:productId (PATCH)', () => {
+    beforeEach(async () => {
+      await testService.createProduct();
+    });
+
+    it('should can update product', async () => {
+      const productId = await testService.getProductId();
+
+      const response = await request(app.getHttpServer())
+        .patch(`/api/products/${productId}`)
+        .send({
+          name: 'example',
+          price: 2000,
+          stock: 2,
+        })
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.id).toBe(productId);
+      expect(response.body.data.name).toBe('example');
+      expect(response.body.data.image_url).toBe('test');
+      expect(response.body.data.price).toBe(1000 * 2);
+      expect(response.body.data.stock).toBe(1 * 2);
+      expect(response.body.data.category_name).toBe('test');
+      expect(response.body.data.isDeleted).toBeFalsy();
+      expect(response.body.data.created_at).toBeDefined();
+      expect(response.body.data.updated_at).toBeDefined();
+
+      const getProductFromElastic: any =
+        await testService.getProductFromElastic();
+
+      expect(getProductFromElastic.name).toBe('example');
+      expect(getProductFromElastic.price).toBe(1000 * 2);
+    });
+
+    it('should can update product image', async () => {
+      const productId = await testService.getProductId();
+
+      const response = await request(app.getHttpServer())
+        .patch(`/api/products/${productId}`)
+        .attach('image', 'test/test.png')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.id).toBe(productId);
+      expect(response.body.data.name).toBe('test');
+      expect(response.body.data.image_url).not.toBe('test');
+      expect(response.body.data.price).toBe(1000);
+      expect(response.body.data.stock).toBe(1);
+      expect(response.body.data.category_name).toBe('test');
+      expect(response.body.data.isDeleted).toBeFalsy();
+      expect(response.body.data.created_at).toBeDefined();
+      expect(response.body.data.updated_at).toBeDefined();
+
+      const getProductFromElastic: any =
+        await testService.getProductFromElastic();
+
+      expect(getProductFromElastic.image_url).not.toBe('test');
+    });
+
+    it('should reject if product is not found', async () => {
+      const productId = await testService.getProductId();
+
+      const response = await request(app.getHttpServer())
+        .patch(`/api/products/${productId + 100}`)
+        .send({
+          name: 'example',
+          price: 2000,
+          stock: 2,
+        })
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBe('product is not found');
+    });
+
+    it('should reject if category is not found', async () => {
+      const productId = await testService.getProductId();
+      const categoryId = await testService.getCategoryId();
+
+      const response = await request(app.getHttpServer())
+        .patch(`/api/products/${productId}`)
+        .send({
+          name: 'example',
+          price: 2000,
+          stock: 2,
+          weight: 2000,
+          condition: 'USED',
+          category_id: categoryId + 100,
+        })
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBe('category is not found');
+    });
+
+    it('should reject if request is not valid', async () => {
+      const productId = await testService.getProductId();
+
+      const response = await request(app.getHttpServer())
+        .patch(`/api/products/${productId}`)
+        .send({
+          name: '',
+          price: 'wrong',
+          stock: 'wrong',
+          weight: 'wrong',
+          condition: 'wrong',
+        })
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(400);
+      expect(response.body.errors).toBeDefined();
+    });
+  });
 });

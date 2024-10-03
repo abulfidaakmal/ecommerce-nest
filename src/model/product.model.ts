@@ -39,3 +39,14 @@ export class CreateProductRequest {
   category_id: number;
   sku: string;
 }
+
+export class UpdateProductRequest {
+  name?: string;
+  description?: string;
+  image_url?: string;
+  category_id?: number;
+  price?: number;
+  stock?: number;
+  weight?: number;
+  condition?: Condition;
+}

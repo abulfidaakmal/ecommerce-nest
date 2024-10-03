@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ElasticsearchService } from '@nestjs/elasticsearch';
-import { CreateProductElastic } from '../../model/elastic.model';
+import {
+  CreateProductElastic,
+  UpdateProductElastic,
+} from '../../model/elastic.model';
 
 @Injectable()
 export class ElasticService {
@@ -19,6 +22,14 @@ export class ElasticService {
         image_url: req.image_url,
         isDeleted: false,
       },
+    });
+  }
+
+  async update(product_id: number, req: UpdateProductElastic): Promise<void> {
+    await this.elasticsearchService.update({
+      index: this.index,
+      id: product_id.toString(),
+      doc: req,
     });
   }
 }

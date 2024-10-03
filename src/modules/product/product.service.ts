@@ -8,6 +8,7 @@ import {
   CreateProductRequest,
   ProductDetailResponse,
   ProductResponse,
+  UpdateProductRequest,
 } from '../../model/product.model';
 import { ProductValidation } from './product.validation';
 import { v4 as uuid } from 'uuid';
@@ -93,5 +94,30 @@ export class ProductService {
       created_at: product.created_at,
       updated_at: product.updated_at,
     };
+  }
+
+  async update(
+    username: string,
+    product_id: number,
+    req: UpdateProductRequest,
+  ): Promise<ProductResponse> {
+    this.logger.info(`Update product request: ${JSON.stringify(req)}`);
+    const updateRequest: UpdateProductRequest = this.validationService.validate(
+      ProductValidation.UPDATE,
+      req,
+    );
+
+    await this.isProductExists(username, product_id);
+
+    if (updateRequest.category_id) {
+      await this.categoryService.isCategoryExists(updateRequest.category_id);
+    }
+
+    const product = await this.productRepository.update(
+      product_id,
+      updateRequest,
+    );
+
+    return this.toProductResponse(product);
   }
 }

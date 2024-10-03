@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
-import { CreateProductRequest } from '../../model/product.model';
+import {
+  CreateProductRequest,
+  UpdateProductRequest,
+} from '../../model/product.model';
 import { ElasticService } from '../elastic/elastic.service';
+import { UpdateProductElastic } from '../../model/elastic.model';
 
 @Injectable()
 export class ProductRepository {
@@ -72,6 +76,44 @@ export class ProductRepository {
         created_at: true,
         updated_at: true,
       },
+    });
+  }
+
+  async update(product_id: number, req: UpdateProductRequest) {
+    return this.prismaService.$transaction(async (prisma) => {
+      const product = await prisma.product.update({
+        where: { id: product_id },
+        data: req,
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          image_url: true,
+          price: true,
+          stock: true,
+          isDeleted: true,
+          created_at: true,
+          updated_at: true,
+          categories: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      });
+
+      const elasticFields = ['name', 'description', 'price', 'image_url'];
+      const doc: UpdateProductElastic = {};
+
+      for (const field of elasticFields) {
+        if (req[field]) {
+          doc[field] = product[field];
+        }
+      }
+
+      await this.elasticService.update(product_id, doc);
+
+      return product;
     });
   }
 }
