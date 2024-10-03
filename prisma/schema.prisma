@@ -207,11 +207,12 @@ model Wishlist {
   updated_at DateTime @updatedAt @db.Timestamp()
 
   username   String @db.VarChar(100)
-  product_id Int    @unique
+  product_id Int
 
   users    User    @relation(fields: [username], references: [username])
   products Product @relation(fields: [product_id], references: [id])
 
+  @@unique([username, product_id])
   @@map("wishlists")
 }
 
