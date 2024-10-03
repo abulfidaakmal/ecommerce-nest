@@ -311,4 +311,49 @@ describe('ProductController (e2e)', () => {
       expect(response.body.errors).toBeDefined();
     });
   });
+
+  describe('/api/products/:productId (DELETE)', () => {
+    beforeEach(async () => {
+      await testService.createProduct();
+    });
+
+    it('should can remove product', async () => {
+      const productId = await testService.getProductId();
+
+      let checkProductStatus = await testService.checkProductStatus();
+      expect(checkProductStatus).toBeFalsy();
+
+      let getProductFromElastic: any =
+        await testService.getProductFromElastic();
+      expect(getProductFromElastic.isDeleted).toBeFalsy();
+
+      const response = await request(app.getHttpServer())
+        .delete(`/api/products/${productId}`)
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data).toBe('OK');
+
+      checkProductStatus = await testService.checkProductStatus();
+      expect(checkProductStatus).toBeTruthy();
+
+      getProductFromElastic = await testService.getProductFromElastic();
+      expect(getProductFromElastic.isDeleted).toBeTruthy();
+    });
+
+    it('should reject if product is not found', async () => {
+      const productId = await testService.getProductId();
+
+      const response = await request(app.getHttpServer())
+        .delete(`/api/products/${productId + 100}`)
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBe('product is not found');
+    });
+  });
 });

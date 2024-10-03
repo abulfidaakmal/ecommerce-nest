@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -94,6 +95,22 @@ export class ProductController {
       username,
       product_id,
       req,
+    );
+
+    return {
+      data: result,
+    };
+  }
+
+  @Delete('/:productId')
+  @Roles('SELLER', 'ADMIN')
+  async remove(
+    @Auth() username: string,
+    @Param('productId', ParseIntPipe) product_id: number,
+  ): Promise<ResponseModel<string>> {
+    const result: string = await this.productService.remove(
+      username,
+      product_id,
     );
 
     return {

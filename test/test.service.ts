@@ -271,4 +271,13 @@ export class TestService {
       });
     });
   }
+
+  async checkProductStatus() {
+    const product = await this.prismaService.product.findFirst({
+      where: { username: 'test' },
+      select: { isDeleted: true },
+    });
+
+    return product.isDeleted;
+  }
 }

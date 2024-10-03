@@ -116,4 +116,15 @@ export class ProductRepository {
       return product;
     });
   }
+
+  async remove(username: string, product_id: number) {
+    await this.prismaService.$transaction(async (prisma) => {
+      await prisma.product.update({
+        where: { username, id: product_id },
+        data: { isDeleted: true },
+      });
+
+      await this.elasticService.remove(product_id);
+    });
+  }
 }

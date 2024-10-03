@@ -32,4 +32,14 @@ export class ElasticService {
       doc: req,
     });
   }
+
+  async remove(product_id: number): Promise<void> {
+    await this.elasticsearchService.update({
+      index: this.index,
+      id: product_id.toString(),
+      doc: {
+        isDeleted: true,
+      },
+    });
+  }
 }

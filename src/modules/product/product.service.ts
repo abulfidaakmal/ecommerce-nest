@@ -120,4 +120,14 @@ export class ProductService {
 
     return this.toProductResponse(product);
   }
+
+  async remove(username: string, product_id: number): Promise<string> {
+    this.logger.info(`Remove product request: ${product_id}`);
+
+    await this.isProductExists(username, product_id);
+
+    await this.productRepository.remove(username, product_id);
+
+    return 'OK';
+  }
 }
