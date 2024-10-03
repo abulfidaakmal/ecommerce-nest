@@ -1,6 +1,9 @@
 import {
   Body,
   Controller,
+  Get,
+  Param,
+  ParseIntPipe,
   Post,
   UploadedFile,
   UseInterceptors,
@@ -9,6 +12,7 @@ import { ProductService } from './product.service';
 import { Auth } from '../../common/auth.decorator';
 import {
   CreateProductRequest,
+  ProductDetailResponse,
   ProductResponse,
 } from '../../model/product.model';
 import { ResponseModel } from '../../model/response.model';
@@ -44,6 +48,22 @@ export class ProductController {
     const result: ProductResponse = await this.productService.create(
       username,
       req,
+    );
+
+    return {
+      data: result,
+    };
+  }
+
+  @Get('/:productId')
+  @Roles('SELLER', 'ADMIN')
+  async getById(
+    @Auth() username: string,
+    @Param('productId', ParseIntPipe) product_id: number,
+  ): Promise<ResponseModel<ProductDetailResponse>> {
+    const result: ProductDetailResponse = await this.productService.getById(
+      username,
+      product_id,
     );
 
     return {

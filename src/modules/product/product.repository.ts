@@ -46,4 +46,32 @@ export class ProductRepository {
       return product;
     });
   }
+
+  async isProductExists(username: string, product_id: number): Promise<number> {
+    return this.prismaService.product.count({
+      where: { username, id: product_id },
+    });
+  }
+
+  async getById(username: string, product_id: number) {
+    return this.prismaService.product.findFirst({
+      where: { username, id: product_id },
+      select: {
+        name: true,
+        description: true,
+        image_url: true,
+        price: true,
+        stock: true,
+        sku: true,
+        weight: true,
+        condition: true,
+        categories: {
+          select: { name: true },
+        },
+        isDeleted: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
+  }
 }

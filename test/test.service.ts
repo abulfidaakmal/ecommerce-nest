@@ -207,4 +207,31 @@ export class TestService {
 
     return product.hits.hits.map((hit) => hit._source)[0];
   }
+
+  async createProductWithoutElastic() {
+    const categoryId = await this.getCategoryId();
+
+    await this.prismaService.product.create({
+      data: {
+        name: 'test123',
+        description: 'this is an example of a field description',
+        price: 1000,
+        stock: 1,
+        category_id: categoryId,
+        weight: 1000,
+        condition: 'NEW',
+        sku: 'test',
+        image_url: 'test',
+        username: 'test',
+      },
+    });
+  }
+
+  async getProductId() {
+    const product = await this.prismaService.product.findFirst({
+      select: { id: true },
+    });
+
+    return product.id;
+  }
 }

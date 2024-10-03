@@ -137,4 +137,53 @@ describe('ProductController (e2e)', () => {
       expect(response.body.errors).toBe('image is required');
     });
   });
+
+  describe('/api/products/:productId (GET)', () => {
+    beforeEach(async () => {
+      await testService.createProductWithoutElastic();
+    });
+
+    it('should can get product by id', async () => {
+      const productId = await testService.getProductId();
+
+      const response = await request(app.getHttpServer())
+        .get(`/api/products/${productId}`)
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      console.info(response.body);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.id).toBe(productId);
+      expect(response.body.data.name).toBe('test123');
+      expect(response.body.data.description).toBe(
+        'this is an example of a field description',
+      );
+      expect(response.body.data.image_url).toBe('test');
+      expect(response.body.data.price).toBe(1000);
+      expect(response.body.data.stock).toBe(1);
+      expect(response.body.data.weight).toBe(1000);
+      expect(response.body.data.condition).toBe('NEW');
+      expect(response.body.data.category_name).toBe('test');
+      expect(response.body.data.sku).toBe('test');
+      expect(response.body.data.isDeleted).toBeFalsy();
+      expect(response.body.data.created_at).toBeDefined();
+      expect(response.body.data.updated_at).toBeDefined();
+    });
+
+    it('should reject if product is not found', async () => {
+      const productId = await testService.getProductId();
+
+      const response = await request(app.getHttpServer())
+        .get(`/api/products/${productId + 100}`)
+
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBe('product is not found');
+    });
+  });
 });

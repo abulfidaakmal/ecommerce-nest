@@ -12,6 +12,22 @@ export class ProductResponse {
   updated_at: Date;
 }
 
+export class ProductDetailResponse {
+  id: number;
+  name: string;
+  description: string;
+  image_url: string;
+  price: number;
+  stock: number;
+  sku: string;
+  weight: number;
+  condition: Condition;
+  category_name: string;
+  isDeleted: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
 export class CreateProductRequest {
   name: string;
   description: string;
