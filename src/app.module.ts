@@ -8,6 +8,7 @@ import { SellerModule } from './modules/seller/seller.module';
 import { APP_GUARD } from '@nestjs/core';
 import { RoleGuard } from './common/role.guard';
 import { CategoryModule } from './modules/category/category.module';
+import { ProductModule } from './modules/product/product.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { CategoryModule } from './modules/category/category.module';
     AddressModule,
     SellerModule,
     CategoryModule,
+    ProductModule,
   ],
   controllers: [],
   providers: [

@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { TestService } from './test.service';
+import { ElasticService } from './elastic.service';
 import { ElasticsearchModule } from '@nestjs/elasticsearch';
 
 @Module({
@@ -10,6 +10,7 @@ import { ElasticsearchModule } from '@nestjs/elasticsearch';
       }),
     }),
   ],
-  providers: [TestService],
+  providers: [ElasticService],
+  exports: [ElasticService],
 })
-export class TestModule {}
+export class ElasticModule {}

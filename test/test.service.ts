@@ -1,10 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../src/common/prisma.service';
 import * as bcrypt from 'bcrypt';
+import { ElasticsearchService } from '@nestjs/elasticsearch';
 
 @Injectable()
 export class TestService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private elasticsearchService: ElasticsearchService,
+  ) {}
+
+  private index = 'ecommerce_products_nest';
 
   async removeAllUser() {
     await this.prismaService.user.deleteMany({
@@ -160,5 +166,45 @@ export class TestService {
     });
 
     return category.id;
+  }
+
+  async removeAllProduct() {
+    await this.prismaService.$transaction(async (prisma) => {
+      await prisma.product.deleteMany({
+        where: {
+          username: 'test',
+        },
+      });
+
+      await this.elasticsearchService.deleteByQuery({
+        index: this.index,
+        query: {
+          match: {
+            name: 'test123',
+          },
+        },
+      });
+
+      await this.elasticsearchService.indices.refresh({
+        index: this.index,
+      });
+    });
+  }
+
+  async getProductFromElastic() {
+    await this.elasticsearchService.indices.refresh({
+      index: this.index,
+    });
+
+    const product = await this.elasticsearchService.search({
+      index: this.index,
+      query: {
+        match: {
+          name: 'test123',
+        },
+      },
+    });
+
+    return product.hits.hits.map((hit) => hit._source)[0];
   }
 }
