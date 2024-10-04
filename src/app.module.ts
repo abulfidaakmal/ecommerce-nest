@@ -9,6 +9,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { RoleGuard } from './common/role.guard';
 import { CategoryModule } from './modules/category/category.module';
 import { ProductModule } from './modules/product/product.module';
+import { WishlistModule } from './modules/wishlist/wishlist.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ProductModule } from './modules/product/product.module';
     SellerModule,
     CategoryModule,
     ProductModule,
+    WishlistModule,
   ],
   controllers: [],
   providers: [

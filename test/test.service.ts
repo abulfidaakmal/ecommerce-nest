@@ -280,4 +280,27 @@ export class TestService {
 
     return product.isDeleted;
   }
+
+  async removeAllWishlist() {
+    await this.prismaService.wishlist.deleteMany({
+      where: { username: 'test' },
+    });
+  }
+
+  async removeAllProductWithoutElastic() {
+    await this.prismaService.product.deleteMany({
+      where: { username: 'test' },
+    });
+  }
+
+  async createWishlist() {
+    const productId = await this.getProductId();
+
+    await this.prismaService.wishlist.create({
+      data: {
+        username: 'test',
+        product_id: productId,
+      },
+    });
+  }
 }
