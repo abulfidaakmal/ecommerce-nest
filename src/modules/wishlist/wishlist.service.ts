@@ -3,6 +3,7 @@ import { Logger } from 'winston';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { WishlistRepository } from './wishlist.repository';
 import {
+  CheckWishlistResponse,
   CreateWishlistRequest,
   GetAllWishlistRequest,
   WishlistResponse,
@@ -122,5 +123,32 @@ export class WishlistService {
     await this.wishlistRepository.remove(username, wishlist_id);
 
     return 'OK';
+  }
+
+  async check(
+    username: string,
+    product_id: number,
+  ): Promise<CheckWishlistResponse> {
+    this.logger.info(`Check wishlist request: ${product_id}`);
+
+    await this.isProductExists(product_id);
+
+    const isMyWishlist = await this.wishlistRepository.existingWishlist(
+      username,
+      product_id,
+    );
+
+    if (!isMyWishlist) {
+      return {
+        my_wishlist: false,
+      };
+    }
+
+    const wishlist = await this.wishlistRepository.check(username, product_id);
+
+    return {
+      my_wishlist: true,
+      wishlist_id: wishlist.id,
+    };
   }
 }

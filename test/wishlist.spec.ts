@@ -214,4 +214,57 @@ describe('WishlistController (e2e)', () => {
       expect(response.body.errors).toBe('wishlist is not found');
     });
   });
+
+  describe('/api/users/wishlists/check?productId=id (GET)', () => {
+    it('should return true when the product is on the wishlist', async () => {
+      await testService.createWishlist();
+      const productId = await testService.getProductId();
+
+      const response = await request(app.getHttpServer())
+        .get(`/api/users/wishlists/check`)
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ])
+        .query({
+          productId,
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.my_wishlist).toBeTruthy();
+      expect(response.body.data.wishlist_id).toBeDefined();
+    });
+
+    it('should return false when the product is not on the wishlist', async () => {
+      const productId = await testService.getProductId();
+
+      const response = await request(app.getHttpServer())
+        .get(`/api/users/wishlists/check`)
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ])
+        .query({
+          productId,
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.my_wishlist).toBeFalsy();
+      expect(response.body.data.wishlist_id).toBeUndefined();
+    });
+
+    it('should reject if product is not found', async () => {
+      const productId = await testService.getProductId();
+
+      const response = await request(app.getHttpServer())
+        .get(`/api/users/wishlists/check`)
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ])
+        .query({
+          productId: productId + 100,
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBe('product is not found');
+    });
+  });
 });

@@ -91,4 +91,11 @@ export class WishlistRepository {
       where: { username, id: wishlist_id },
     });
   }
+
+  async check(username: string, product_id: number): Promise<{ id: number }> {
+    return this.prismaService.wishlist.findFirst({
+      where: { username, product_id },
+      select: { id: true },
+    });
+  }
 }

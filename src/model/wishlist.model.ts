@@ -8,6 +8,11 @@ export class WishlistResponse {
   updated_at: Date;
 }
 
+export class CheckWishlistResponse {
+  my_wishlist: boolean;
+  wishlist_id?: number;
+}
+
 export class CreateWishlistRequest {
   product_id: number;
 }

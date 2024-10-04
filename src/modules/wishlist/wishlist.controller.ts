@@ -12,6 +12,7 @@ import {
 import { WishlistService } from './wishlist.service';
 import { Auth } from '../../common/auth.decorator';
 import {
+  CheckWishlistResponse,
   CreateWishlistRequest,
   GetAllWishlistRequest,
   WishlistResponse,
@@ -56,6 +57,21 @@ export class WishlistController {
     const result: string = await this.wishlistService.remove(
       username,
       wishlist_id,
+    );
+
+    return {
+      data: result,
+    };
+  }
+
+  @Get('check')
+  async check(
+    @Auth() username: string,
+    @Query('productId', ParseIntPipe) product_id: number,
+  ): Promise<ResponseModel<CheckWishlistResponse>> {
+    const result: CheckWishlistResponse = await this.wishlistService.check(
+      username,
+      product_id,
     );
 
     return {
