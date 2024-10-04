@@ -76,4 +76,19 @@ export class WishlistRepository {
       take: req.size,
     });
   }
+
+  async isWishlistExists(
+    username: string,
+    wishlist_id: number,
+  ): Promise<number> {
+    return this.prismaService.wishlist.count({
+      where: { username, id: wishlist_id },
+    });
+  }
+
+  async remove(username: string, wishlist_id: number): Promise<void> {
+    await this.prismaService.wishlist.delete({
+      where: { username, id: wishlist_id },
+    });
+  }
 }

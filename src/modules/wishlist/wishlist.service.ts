@@ -106,4 +106,21 @@ export class WishlistService {
       },
     };
   }
+
+  async remove(username: string, wishlist_id: number): Promise<string> {
+    this.logger.info(`Remove wishlist request: ${wishlist_id}`);
+
+    const isWishlistExists = await this.wishlistRepository.isWishlistExists(
+      username,
+      wishlist_id,
+    );
+
+    if (!isWishlistExists) {
+      throw new HttpException('wishlist is not found', 404);
+    }
+
+    await this.wishlistRepository.remove(username, wishlist_id);
+
+    return 'OK';
+  }
 }

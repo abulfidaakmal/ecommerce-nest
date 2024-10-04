@@ -2,7 +2,9 @@ import {
   Body,
   Controller,
   DefaultValuePipe,
+  Delete,
   Get,
+  Param,
   ParseIntPipe,
   Post,
   Query,
@@ -44,5 +46,20 @@ export class WishlistController {
     const req: GetAllWishlistRequest = { page, size };
 
     return this.wishlistService.getAll(username, req);
+  }
+
+  @Delete('/:wishlistId')
+  async remove(
+    @Auth() username: string,
+    @Param('wishlistId', ParseIntPipe) wishlist_id: number,
+  ): Promise<ResponseModel<string>> {
+    const result: string = await this.wishlistService.remove(
+      username,
+      wishlist_id,
+    );
+
+    return {
+      data: result,
+    };
   }
 }

@@ -182,4 +182,36 @@ describe('WishlistController (e2e)', () => {
       expect(response.body.errors).toBe('no wishlist available');
     });
   });
+
+  describe('/api/users/wishlists/:wishlistId (DELETE)', () => {
+    beforeEach(async () => {
+      await testService.createWishlist();
+    });
+
+    it('should can remove wishlist', async () => {
+      const wishlistId = await testService.getWishlistId();
+
+      const response = await request(app.getHttpServer())
+        .delete(`/api/users/wishlists/${wishlistId}`)
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data).toBe('OK');
+    });
+
+    it('should reject if wishlist is not found', async () => {
+      const wishlistId = await testService.getWishlistId();
+
+      const response = await request(app.getHttpServer())
+        .delete(`/api/users/wishlists/${wishlistId + 100}`)
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBe('wishlist is not found');
+    });
+  });
 });

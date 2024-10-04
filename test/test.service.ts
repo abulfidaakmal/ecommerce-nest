@@ -303,4 +303,12 @@ export class TestService {
       },
     });
   }
+
+  async getWishlistId() {
+    const wishlist = await this.prismaService.wishlist.findFirst({
+      where: { username: 'test' },
+    });
+
+    return wishlist.id;
+  }
 }
