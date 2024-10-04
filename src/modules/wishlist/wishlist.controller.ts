@@ -1,8 +1,17 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  DefaultValuePipe,
+  Get,
+  ParseIntPipe,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { WishlistService } from './wishlist.service';
 import { Auth } from '../../common/auth.decorator';
 import {
   CreateWishlistRequest,
+  GetAllWishlistRequest,
   WishlistResponse,
 } from '../../model/wishlist.model';
 import { ResponseModel } from '../../model/response.model';
@@ -24,5 +33,16 @@ export class WishlistController {
     return {
       data: result,
     };
+  }
+
+  @Get()
+  async getAll(
+    @Auth() username: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('size', new DefaultValuePipe(10), ParseIntPipe) size: number,
+  ): Promise<ResponseModel<WishlistResponse[]>> {
+    const req: GetAllWishlistRequest = { page, size };
+
+    return this.wishlistService.getAll(username, req);
   }
 }

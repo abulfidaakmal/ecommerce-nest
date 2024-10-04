@@ -11,3 +11,8 @@ export class WishlistResponse {
 export class CreateWishlistRequest {
   product_id: number;
 }
+
+export class GetAllWishlistRequest {
+  page: number;
+  size: number;
+}

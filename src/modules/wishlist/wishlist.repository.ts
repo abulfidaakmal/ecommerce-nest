@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
+import { GetAllWishlistRequest } from '../../model/wishlist.model';
 
 @Injectable()
 export class WishlistRepository {
@@ -36,6 +37,43 @@ export class WishlistRepository {
         created_at: true,
         updated_at: true,
       },
+    });
+  }
+
+  async getTotalWishlist(username: string): Promise<number> {
+    return this.prismaService.wishlist.count({
+      where: {
+        username,
+        products: {
+          isDeleted: false,
+        },
+      },
+    });
+  }
+
+  async getAll(username: string, req: GetAllWishlistRequest) {
+    return this.prismaService.wishlist.findMany({
+      where: {
+        username,
+        products: {
+          isDeleted: false,
+        },
+      },
+      select: {
+        id: true,
+        products: {
+          select: {
+            id: true,
+            name: true,
+            image_url: true,
+            price: true,
+          },
+        },
+        created_at: true,
+        updated_at: true,
+      },
+      skip: req.page,
+      take: req.size,
     });
   }
 }

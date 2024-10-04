@@ -4,10 +4,12 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { WishlistRepository } from './wishlist.repository';
 import {
   CreateWishlistRequest,
+  GetAllWishlistRequest,
   WishlistResponse,
 } from '../../model/wishlist.model';
 import { ValidationService } from '../../common/validation.service';
 import { WishlistValidation } from './wishlist.validation';
+import { ResponseModel } from '../../model/response.model';
 
 @Injectable()
 export class WishlistService {
@@ -63,5 +65,45 @@ export class WishlistService {
     const wishlist = await this.wishlistRepository.create(username, product_id);
 
     return this.toWishlistResponse(wishlist);
+  }
+
+  async getAll(
+    username: string,
+    req: GetAllWishlistRequest,
+  ): Promise<ResponseModel<WishlistResponse[]>> {
+    this.logger.info(`Get all wishlist request: ${username}`);
+    const getRequest: GetAllWishlistRequest = this.validationService.validate(
+      WishlistValidation.GET,
+      req,
+    );
+
+    const total_data = await this.wishlistRepository.getTotalWishlist(username);
+
+    if (!total_data) {
+      throw new HttpException('no wishlist available', 404);
+    }
+
+    const current_page = getRequest.page;
+    const size = getRequest.size;
+    getRequest.page = (current_page - 1) * size;
+    const total_page = Math.ceil(total_data / size);
+
+    const wishlists = await this.wishlistRepository.getAll(
+      username,
+      getRequest,
+    );
+    const result = wishlists.map((wishlist) => {
+      return this.toWishlistResponse(wishlist);
+    });
+
+    return {
+      data: result,
+      paging: {
+        current_page,
+        size,
+        total_data,
+        total_page,
+      },
+    };
   }
 }

@@ -104,4 +104,82 @@ describe('WishlistController (e2e)', () => {
       expect(response.body.errors).toBe('product already on the wishlist');
     });
   });
+
+  describe('/api/users/wishlists (GET)', () => {
+    it('should can get all wishlist', async () => {
+      await testService.createWishlist();
+
+      const response = await request(app.getHttpServer())
+        .get('/api/users/wishlists')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ])
+        .query({
+          page: 1,
+          size: 1,
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data[0].id).toBeDefined();
+      expect(response.body.data[0].product_id).toBeDefined();
+      expect(response.body.data[0].name).toBe('test123');
+      expect(response.body.data[0].price).toBe(1000);
+      expect(response.body.data[0].image_url).toBe('test');
+      expect(response.body.data[0].created_at).toBeDefined();
+      expect(response.body.data[0].updated_at).toBeDefined();
+      expect(response.body.paging.current_page).toBe(1);
+      expect(response.body.paging.size).toBe(1);
+      expect(response.body.paging.total_data).toBe(1);
+      expect(response.body.paging.total_page).toBe(1);
+    });
+
+    it('should can get all wishlist if the query does not exists', async () => {
+      await testService.createWishlist();
+
+      const response = await request(app.getHttpServer())
+        .get('/api/users/wishlists')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data[0].id).toBeDefined();
+      expect(response.body.data[0].product_id).toBeDefined();
+      expect(response.body.data[0].name).toBe('test123');
+      expect(response.body.data[0].price).toBe(1000);
+      expect(response.body.data[0].image_url).toBe('test');
+      expect(response.body.data[0].created_at).toBeDefined();
+      expect(response.body.data[0].updated_at).toBeDefined();
+      expect(response.body.paging.current_page).toBe(1);
+      expect(response.body.paging.size).toBe(10);
+      expect(response.body.paging.total_data).toBe(1);
+      expect(response.body.paging.total_page).toBe(1);
+    });
+
+    it('should reject if request is not valid', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/users/wishlists')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ])
+        .query({
+          page: 'wrong',
+          size: 'wrong',
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.errors).toBeDefined();
+    });
+
+    it('should reject if no wishlist available', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/users/wishlists')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBe('no wishlist available');
+    });
+  });
 });
