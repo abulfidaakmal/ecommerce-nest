@@ -348,4 +348,34 @@ export class TestService {
 
     return cart.id;
   }
+
+  async createAddressAndSelect() {
+    await this.prismaService.address.create({
+      data: {
+        street: 'test',
+        city: 'test',
+        province: 'test',
+        postal_code: 'test',
+        detail: 'test',
+        name: 'test',
+        phone: 'test',
+        username: 'test',
+        is_selected: true,
+      },
+    });
+  }
+
+  async removeAllOrder() {
+    await this.prismaService.$transaction(async (prisma) => {
+      await prisma.orderDetails.deleteMany({
+        where: {
+          orders: { username: 'test' },
+        },
+      });
+
+      await prisma.order.deleteMany({
+        where: { username: 'test' },
+      });
+    });
+  }
 }

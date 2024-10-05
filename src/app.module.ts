@@ -11,6 +11,7 @@ import { CategoryModule } from './modules/category/category.module';
 import { ProductModule } from './modules/product/product.module';
 import { WishlistModule } from './modules/wishlist/wishlist.module';
 import { CartModule } from './modules/cart/cart.module';
+import { OrderModule } from './modules/order/order.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { CartModule } from './modules/cart/cart.module';
     ProductModule,
     WishlistModule,
     CartModule,
+    OrderModule,
   ],
   controllers: [],
   providers: [
