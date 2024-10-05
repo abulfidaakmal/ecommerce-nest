@@ -1,11 +1,16 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { HttpException, Inject, Injectable } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { CartRepository } from './cart.repository';
 import { ValidationService } from '../../common/validation.service';
 import { WishlistService } from '../wishlist/wishlist.service';
-import { CartResponse, CreateCartRequest } from '../../model/cart.model';
+import {
+  CartResponse,
+  CreateCartRequest,
+  GetAllCartRequest,
+} from '../../model/cart.model';
 import { CartValidation } from './cart.validation';
+import { ResponseModel } from '../../model/response.model';
 
 @Injectable()
 export class CartService {
@@ -84,5 +89,44 @@ export class CartService {
     );
 
     return this.toCartResponse(cart, price);
+  }
+
+  async getAll(
+    username: string,
+    req: GetAllCartRequest,
+  ): Promise<ResponseModel<CartResponse[]>> {
+    this.logger.info(`Get all cart request: ${JSON.stringify(req)}`);
+    const getAllRequest: GetAllCartRequest = this.validationService.validate(
+      CartValidation.GET,
+      req,
+    );
+
+    const total_data = await this.cartRepository.getTotalCart(username);
+
+    if (!total_data) {
+      throw new HttpException('no cart available', 404);
+    }
+
+    const current_page = getAllRequest.page;
+    const size = getAllRequest.size;
+    getAllRequest.page = (current_page - 1) * size;
+    const total_page = Math.ceil(total_data / size);
+
+    const carts = await this.cartRepository.getAll(username, getAllRequest);
+    const result = carts.map((cart) => {
+      const price = cart.products.price;
+
+      return this.toCartResponse(cart, price);
+    });
+
+    return {
+      data: result,
+      paging: {
+        current_page,
+        size,
+        total_data,
+        total_page,
+      },
+    };
   }
 }

@@ -21,6 +21,11 @@ export class CreateCartRequest {
   quantity: number;
 }
 
+export class GetAllCartRequest {
+  page: number;
+  size: number;
+}
+
 export class UpdateCartRequest {
   cart_id: number;
   quantity: number;

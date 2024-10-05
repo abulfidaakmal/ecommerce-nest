@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
-import { CreateCartRequest, UpdateCartRequest } from '../../model/cart.model';
+import {
+  CreateCartRequest,
+  GetAllCartRequest,
+  UpdateCartRequest,
+} from '../../model/cart.model';
 
 @Injectable()
 export class CartRepository {
@@ -51,6 +55,45 @@ export class CartRepository {
           },
         },
       },
+    });
+  }
+
+  async getTotalCart(username: string): Promise<number> {
+    return this.prismaService.cart.count({
+      where: { username },
+    });
+  }
+
+  async getAll(username: string, req: GetAllCartRequest) {
+    return this.prismaService.cart.findMany({
+      where: { username },
+      select: {
+        id: true,
+        quantity: true,
+        total: true,
+        created_at: true,
+        updated_at: true,
+        products: {
+          select: {
+            id: true,
+            name: true,
+            stock: true,
+            price: true,
+            image_url: true,
+            users: {
+              select: {
+                sellers: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      take: req.size,
+      skip: req.page,
     });
   }
 
