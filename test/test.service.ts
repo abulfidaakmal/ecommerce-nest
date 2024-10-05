@@ -378,4 +378,13 @@ export class TestService {
       });
     });
   }
+
+  async getProductStock() {
+    const product = await this.prismaService.product.findFirst({
+      where: { username: 'test' },
+      select: { stock: true },
+    });
+
+    return product.stock;
+  }
 }

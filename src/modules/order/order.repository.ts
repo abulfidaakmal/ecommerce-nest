@@ -43,9 +43,14 @@ export class OrderRepository {
     });
   }
 
-  async create(username: string, data, address_id: number) {
+  async create(
+    username: string,
+    data,
+    address_id: number,
+    product_ids: number[],
+  ) {
     return this.prismaService.$transaction(async (prisma) => {
-      return prisma.order.create({
+      const order = await prisma.order.create({
         data: {
           username,
           address_id,
@@ -67,6 +72,25 @@ export class OrderRepository {
           },
         },
       });
+
+      await prisma.wishlist.deleteMany({
+        where: { username, product_id: { in: product_ids } },
+      });
+
+      await Promise.all(
+        data.map(async (result) => {
+          await prisma.product.update({
+            where: { id: result.product_id },
+            data: {
+              stock: {
+                decrement: result.quantity,
+              },
+            },
+          });
+        }),
+      );
+
+      return order;
     });
   }
 }

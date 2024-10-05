@@ -99,6 +99,7 @@ export class OrderService {
       username,
       data,
       isAddressExists.id,
+      product_ids,
     );
 
     return this.toOrderResponse(orders, products);

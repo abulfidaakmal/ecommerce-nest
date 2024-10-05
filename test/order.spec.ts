@@ -42,6 +42,9 @@ describe('OrderController (e2e)', () => {
       await testService.createSeller();
 
       const productId = await testService.getProductId();
+      let getProductStock = await testService.getProductStock();
+
+      expect(getProductStock).toBe(1);
 
       const response = await request(app.getHttpServer())
         .post('/api/orders')
@@ -68,6 +71,8 @@ describe('OrderController (e2e)', () => {
       expect(response.body.data.product[0].image_url).toBe('test');
       expect(response.body.data.created_at).toBeDefined();
       expect(response.body.data.updated_at).toBeDefined();
+
+      getProductStock = await testService.getProductStock();
     });
 
     it('should reject if request is not valid', async () => {
