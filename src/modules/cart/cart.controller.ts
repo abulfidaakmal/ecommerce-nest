@@ -3,7 +3,9 @@ import {
   Controller,
   DefaultValuePipe,
   Get,
+  Param,
   ParseIntPipe,
+  Patch,
   Post,
   Query,
 } from '@nestjs/common';
@@ -13,6 +15,7 @@ import {
   CartResponse,
   CreateCartRequest,
   GetAllCartRequest,
+  UpdateCartRequest,
 } from '../../model/cart.model';
 import { ResponseModel } from '../../model/response.model';
 
@@ -41,5 +44,20 @@ export class CartController {
     const req: GetAllCartRequest = { page, size };
 
     return this.cartService.getAll(username, req);
+  }
+
+  @Patch('/:cartId')
+  async update(
+    @Auth() username: string,
+    @Param('cartId', ParseIntPipe) cart_id: number,
+    @Body() req: UpdateCartRequest,
+  ): Promise<ResponseModel<CartResponse>> {
+    req.cart_id = cart_id;
+
+    const result = await this.cartService.update(username, req);
+
+    return {
+      data: result,
+    };
   }
 }

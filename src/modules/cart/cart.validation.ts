@@ -10,4 +10,9 @@ export class CartValidation {
     page: z.coerce.number().positive().default(1),
     size: z.coerce.number().positive().max(100).default(10),
   });
+
+  static readonly UPDATE: ZodType = z.object({
+    cart_id: z.coerce.number().min(1).positive(),
+    quantity: z.coerce.number().min(1).positive(),
+  });
 }

@@ -97,6 +97,21 @@ export class CartRepository {
     });
   }
 
+  async isCartExists(username: string, cart_id: number): Promise<number> {
+    return this.prismaService.cart.count({
+      where: { username, id: cart_id },
+    });
+  }
+
+  async getProductId(username: string, cart_id: number): Promise<number> {
+    const product = await this.prismaService.cart.findFirst({
+      where: { username, id: cart_id },
+      select: { product_id: true },
+    });
+
+    return product.product_id;
+  }
+
   async update(username: string, req: UpdateCartRequest, price: number) {
     return this.prismaService.cart.update({
       where: { username, id: req.cart_id },

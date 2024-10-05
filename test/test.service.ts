@@ -340,4 +340,12 @@ export class TestService {
       where: { username: 'test' },
     });
   }
+
+  async getCartId() {
+    const cart = await this.prismaService.cart.findFirst({
+      where: { username: 'test' },
+    });
+
+    return cart.id;
+  }
 }

@@ -220,4 +220,76 @@ describe('CartController (e2e)', () => {
       expect(response.body.errors).toBe('no cart available');
     });
   });
+
+  describe('/api/carts/:cartId (PATCH)', () => {
+    beforeEach(async () => {
+      await testService.createCart();
+    });
+
+    it('should can update  cart', async () => {
+      let cart = await testService.getCart();
+      const cartId = await testService.getCartId();
+
+      expect(cart.quantity).toBe(1);
+      expect(cart.total).toBe(1000);
+
+      const response = await request(app.getHttpServer())
+        .patch(`/api/carts/${cartId}`)
+        .send({
+          quantity: 2,
+        })
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.cart.id).toBe(cartId);
+      expect(response.body.data.cart.quantity).toBe(3);
+      expect(response.body.data.cart.total).toBe(1000 * 3);
+      expect(response.body.data.product.id).toBeDefined();
+      expect(response.body.data.product.name).toBe('test123');
+      expect(response.body.data.product.image_url).toBe('test');
+      expect(response.body.data.product.price).toBe(1000);
+      expect(response.body.data.product.stock).toBe(1);
+      expect(response.body.data.product.seller_name).toBe('test');
+      expect(response.body.data.created_at).toBeDefined();
+      expect(response.body.data.updated_at).toBeDefined();
+
+      cart = await testService.getCart();
+      expect(cart.quantity).toBe(3);
+      expect(cart.total).toBe(3000);
+    });
+
+    it('should reject if request is not valid', async () => {
+      const cartId = await testService.getCartId();
+
+      const response = await request(app.getHttpServer())
+        .patch(`/api/carts/${cartId}`)
+        .send({
+          quantity: 'wrong',
+        })
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(400);
+      expect(response.body.errors).toBeDefined();
+    });
+
+    it('should reject if cart is not found', async () => {
+      const cartId = await testService.getCartId();
+
+      const response = await request(app.getHttpServer())
+        .patch(`/api/carts/${cartId + 100}`)
+        .send({
+          quantity: 2,
+        })
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBe('cart is not found');
+    });
+  });
 });

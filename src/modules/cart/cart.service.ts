@@ -8,6 +8,7 @@ import {
   CartResponse,
   CreateCartRequest,
   GetAllCartRequest,
+  UpdateCartRequest,
 } from '../../model/cart.model';
 import { CartValidation } from './cart.validation';
 import { ResponseModel } from '../../model/response.model';
@@ -20,6 +21,14 @@ export class CartService {
     private readonly validationService: ValidationService,
     private readonly wishlistService: WishlistService,
   ) {}
+
+  async isCartExists(username: string, product_id: number): Promise<void> {
+    const check = await this.cartRepository.isCartExists(username, product_id);
+
+    if (!check) {
+      throw new HttpException('cart is not found', 404);
+    }
+  }
 
   private toCartResponse(cart, price: number): CartResponse {
     const product = cart.products;
@@ -128,5 +137,41 @@ export class CartService {
         total_page,
       },
     };
+  }
+
+  async update(
+    username: string,
+    req: UpdateCartRequest,
+  ): Promise<CartResponse> {
+    this.logger.info(`Update cart request: ${JSON.stringify(req)}`);
+    const updateRequest: UpdateCartRequest = this.validationService.validate(
+      CartValidation.UPDATE,
+      req,
+    );
+
+    const cart_id = updateRequest.cart_id;
+
+    await this.isCartExists(username, cart_id);
+
+    const productId = await this.cartRepository.getProductId(username, cart_id);
+
+    const product = await this.cartRepository.getProductPrice(productId);
+
+    const existingCart = await this.cartRepository.existingCart(
+      username,
+      productId,
+    );
+
+    updateRequest.quantity += existingCart.quantity;
+
+    const price = product.price;
+
+    const cart = await this.cartRepository.update(
+      username,
+      updateRequest,
+      price,
+    );
+
+    return this.toCartResponse(cart, price);
   }
 }
