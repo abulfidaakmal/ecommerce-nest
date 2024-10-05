@@ -10,6 +10,7 @@ import { RoleGuard } from './common/role.guard';
 import { CategoryModule } from './modules/category/category.module';
 import { ProductModule } from './modules/product/product.module';
 import { WishlistModule } from './modules/wishlist/wishlist.module';
+import { CartModule } from './modules/cart/cart.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { WishlistModule } from './modules/wishlist/wishlist.module';
     CategoryModule,
     ProductModule,
     WishlistModule,
+    CartModule,
   ],
   controllers: [],
   providers: [

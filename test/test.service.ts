@@ -311,4 +311,33 @@ export class TestService {
 
     return wishlist.id;
   }
+
+  async getCart() {
+    return this.prismaService.cart.findFirst({
+      where: { username: 'test' },
+      select: {
+        quantity: true,
+        total: true,
+      },
+    });
+  }
+
+  async createCart() {
+    const productId = await this.getProductId();
+
+    await this.prismaService.cart.create({
+      data: {
+        username: 'test',
+        product_id: productId,
+        quantity: 1,
+        total: 1000,
+      },
+    });
+  }
+
+  async removeAllCart() {
+    await this.prismaService.cart.deleteMany({
+      where: { username: 'test' },
+    });
+  }
 }
