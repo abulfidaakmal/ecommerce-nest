@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   DefaultValuePipe,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -55,6 +56,18 @@ export class CartController {
     req.cart_id = cart_id;
 
     const result = await this.cartService.update(username, req);
+
+    return {
+      data: result,
+    };
+  }
+
+  @Delete('/:cartId')
+  async remove(
+    @Auth() username: string,
+    @Param('cartId', ParseIntPipe) cart_id: number,
+  ): Promise<ResponseModel<string>> {
+    const result = await this.cartService.remove(username, cart_id);
 
     return {
       data: result,

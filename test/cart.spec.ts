@@ -292,4 +292,47 @@ describe('CartController (e2e)', () => {
       expect(response.body.errors).toBe('cart is not found');
     });
   });
+
+  describe('/api/carts/:cartId (DELETE)', () => {
+    beforeEach(async () => {
+      await testService.createCart();
+    });
+
+    it('should can remove  cart', async () => {
+      const cartId = await testService.getCartId();
+
+      const response = await request(app.getHttpServer())
+        .delete(`/api/carts/${cartId}`)
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data).toBe('OK');
+    });
+
+    it('should reject if request is not valid', async () => {
+      const response = await request(app.getHttpServer())
+        .delete(`/api/carts/wrong`)
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(400);
+      expect(response.body.errors).toBeDefined();
+    });
+
+    it('should reject if cart is not found', async () => {
+      const cartId = await testService.getCartId();
+
+      const response = await request(app.getHttpServer())
+        .delete(`/api/carts/${cartId + 100}`)
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBe('cart is not found');
+    });
+  });
 });

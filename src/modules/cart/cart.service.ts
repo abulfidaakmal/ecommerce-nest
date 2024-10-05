@@ -174,4 +174,14 @@ export class CartService {
 
     return this.toCartResponse(cart, price);
   }
+
+  async remove(username: string, cart_id: number): Promise<string> {
+    this.logger.info(`Remove cart request: ${cart_id}`);
+
+    await this.isCartExists(username, cart_id);
+
+    await this.cartRepository.remove(username, cart_id);
+
+    return 'OK';
+  }
 }

@@ -145,4 +145,10 @@ export class CartRepository {
       },
     });
   }
+
+  async remove(username: string, cart_id: number): Promise<void> {
+    await this.prismaService.cart.delete({
+      where: { username, id: cart_id },
+    });
+  }
 }
