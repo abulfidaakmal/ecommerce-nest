@@ -8,10 +8,12 @@ import {
   CreateProductRequest,
   ProductDetailResponse,
   ProductResponse,
+  SearchProductRequest,
   UpdateProductRequest,
 } from '../../model/product.model';
 import { ProductValidation } from './product.validation';
 import { v4 as uuid } from 'uuid';
+import { ResponseModel } from '../../model/response.model';
 
 @Injectable()
 export class ProductService {
@@ -67,6 +69,51 @@ export class ProductService {
     );
 
     return this.toProductResponse(product);
+  }
+
+  async search(
+    username: string,
+    req: SearchProductRequest,
+  ): Promise<ResponseModel<ProductResponse[]>> {
+    this.logger.info(`Search product request: ${JSON.stringify(req)}`);
+    const searchRequest: SearchProductRequest = this.validationService.validate(
+      ProductValidation.SEARCH,
+      req,
+    );
+
+    const where: any = { username, isDeleted: searchRequest.isDeleted };
+
+    if (searchRequest.search) {
+      where.name = { contains: searchRequest.search };
+    }
+
+    const total_data = await this.productRepository.getTotalProduct(where);
+
+    if (!total_data) {
+      throw new HttpException('product is not found', 404);
+    }
+
+    const current_page = searchRequest.page;
+    const size = searchRequest.size;
+    searchRequest.page = (current_page - 1) * size;
+    const total_page = Math.ceil(total_data / size);
+
+    const products = await this.productRepository.search(where, searchRequest);
+
+    const result = products.map((product) => {
+      console.info(product);
+      return this.toProductResponse(product);
+    });
+
+    return {
+      data: result,
+      paging: {
+        current_page,
+        size,
+        total_data,
+        total_page,
+      },
+    };
   }
 
   async getById(

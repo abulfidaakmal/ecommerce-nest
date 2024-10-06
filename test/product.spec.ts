@@ -138,6 +138,93 @@ describe('ProductController (e2e)', () => {
     });
   });
 
+  describe('/api/products (GET)', () => {
+    beforeEach(async () => {
+      await testService.createProductWithoutElastic();
+    });
+
+    it('should can search product', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/products`)
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ])
+        .query({
+          search: 'test',
+          page: 1,
+          size: 1,
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data[0].id).toBeDefined();
+      expect(response.body.data[0].name).toBe('test123');
+      expect(response.body.data[0].price).toBe(1000);
+      expect(response.body.data[0].stock).toBe(1);
+      expect(response.body.data[0].category_name).toBe('test');
+      expect(response.body.data[0].image_url).toBe('test');
+      expect(response.body.data[0].isDeleted).toBeFalsy();
+      expect(response.body.data[0].created_at).toBeDefined();
+      expect(response.body.data[0].updated_at).toBeDefined();
+      expect(response.body.paging.current_page).toBe(1);
+      expect(response.body.paging.size).toBe(1);
+      expect(response.body.paging.total_data).toBe(1);
+      expect(response.body.paging.total_page).toBe(1);
+    });
+
+    it('should can search product if the query does not exists', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/products`)
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data[0].id).toBeDefined();
+      expect(response.body.data[0].name).toBe('test123');
+      expect(response.body.data[0].price).toBe(1000);
+      expect(response.body.data[0].stock).toBe(1);
+      expect(response.body.data[0].category_name).toBe('test');
+      expect(response.body.data[0].image_url).toBe('test');
+      expect(response.body.data[0].isDeleted).toBeFalsy();
+      expect(response.body.data[0].created_at).toBeDefined();
+      expect(response.body.data[0].updated_at).toBeDefined();
+      expect(response.body.paging.current_page).toBe(1);
+      expect(response.body.paging.size).toBe(10);
+      expect(response.body.paging.total_data).toBe(1);
+      expect(response.body.paging.total_page).toBe(1);
+    });
+
+    it('should reject if product is not found', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/products`)
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ])
+        .query({
+          search: 'not found',
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBe('product is not found');
+    });
+
+    it('should reject if request is not valid', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/products`)
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ])
+        .query({
+          search: '',
+          page: 'wrong',
+          size: 'wrong',
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.errors).toBeDefined();
+    });
+  });
+
   describe('/api/products/:productId (GET)', () => {
     beforeEach(async () => {
       await testService.createProductWithoutElastic();

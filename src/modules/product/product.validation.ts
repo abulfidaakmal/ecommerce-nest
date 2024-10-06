@@ -12,6 +12,13 @@ export class ProductValidation {
     category_id: z.coerce.number().positive(),
   });
 
+  static readonly SEARCH: ZodType = z.object({
+    search: z.string().trim().min(1).optional(),
+    isDeleted: z.boolean().default(false),
+    page: z.coerce.number().min(1).positive().default(1),
+    size: z.coerce.number().min(1).max(50).positive().default(10),
+  });
+
   static readonly UPDATE: ZodType = z.object({
     name: z.string().trim().min(5).max(100).optional(),
     description: z.string().trim().min(20).optional(),

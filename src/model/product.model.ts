@@ -40,6 +40,13 @@ export class CreateProductRequest {
   sku: string;
 }
 
+export class SearchProductRequest {
+  search: string;
+  isDeleted: boolean;
+  page: number;
+  size: number;
+}
+
 export class UpdateProductRequest {
   name?: string;
   description?: string;

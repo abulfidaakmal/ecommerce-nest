@@ -1,12 +1,15 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
   Param,
+  ParseBoolPipe,
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -16,6 +19,7 @@ import {
   CreateProductRequest,
   ProductDetailResponse,
   ProductResponse,
+  SearchProductRequest,
   UpdateProductRequest,
 } from '../../model/product.model';
 import { ResponseModel } from '../../model/response.model';
@@ -56,6 +60,20 @@ export class ProductController {
     return {
       data: result,
     };
+  }
+
+  @Get()
+  async search(
+    @Auth() username: string,
+    @Query('search') search: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('size', new DefaultValuePipe(10), ParseIntPipe) size: number,
+    @Query('isDeleted', new DefaultValuePipe(false), ParseBoolPipe)
+    isDeleted: boolean,
+  ): Promise<ResponseModel<ProductResponse[]>> {
+    const req: SearchProductRequest = { search, page, size, isDeleted };
+
+    return this.productService.search(username, req);
   }
 
   @Get('/:productId')

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
 import {
   CreateProductRequest,
+  SearchProductRequest,
   UpdateProductRequest,
 } from '../../model/product.model';
 import { ElasticService } from '../elastic/elastic.service';
@@ -76,6 +77,34 @@ export class ProductRepository {
         created_at: true,
         updated_at: true,
       },
+    });
+  }
+
+  async getTotalProduct(where): Promise<number> {
+    return this.prismaService.product.count({ where });
+  }
+
+  search(where, req: SearchProductRequest) {
+    return this.prismaService.product.findMany({
+      where,
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        image_url: true,
+        price: true,
+        stock: true,
+        isDeleted: true,
+        created_at: true,
+        updated_at: true,
+        categories: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      take: req.size,
+      skip: req.page,
     });
   }
 
