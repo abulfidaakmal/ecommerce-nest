@@ -43,6 +43,9 @@ describe('ReviewController (e2e)', () => {
       await testService.updateOrderStatusToDelivered();
       const productId = await testService.getProductId();
 
+      let orderStatus = await testService.getOrderStatus();
+      expect(orderStatus).toEqual('DELIVERED');
+
       const response = await request(app.getHttpServer())
         .post('/api/reviews')
         .field({
@@ -65,6 +68,9 @@ describe('ReviewController (e2e)', () => {
       expect(response.body.data.product_image).toBe('test');
       expect(response.body.data.created_at).toBeDefined();
       expect(response.body.data.updated_at).toBeDefined();
+
+      orderStatus = await testService.getOrderStatus();
+      expect(orderStatus).toEqual('COMPLETED');
     });
 
     it('should reject if the order has not been delivered', async () => {

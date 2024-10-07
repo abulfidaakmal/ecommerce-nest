@@ -20,23 +20,37 @@ export class ReviewRepository {
   }
 
   async create(username: string, req: CreateReviewRequest) {
-    return this.prismaService.review.create({
-      data: { username, ...req },
-      select: {
-        id: true,
-        rating: true,
-        summary: true,
-        image_url: true,
-        product_id: true,
-        products: {
-          select: {
-            name: true,
-            image_url: true,
+    return this.prismaService.$transaction(async (prisma) => {
+      const review = await prisma.review.create({
+        data: { username, ...req },
+        select: {
+          id: true,
+          rating: true,
+          summary: true,
+          image_url: true,
+          product_id: true,
+          products: {
+            select: {
+              name: true,
+              image_url: true,
+            },
           },
+          created_at: true,
+          updated_at: true,
         },
-        created_at: true,
-        updated_at: true,
-      },
+      });
+
+      const orderDetail = await prisma.orderDetails.findFirst({
+        where: { product_id: req.product_id, orders: { username } },
+        select: { id: true },
+      });
+
+      await prisma.orderDetails.update({
+        where: { id: orderDetail.id },
+        data: { status: 'COMPLETED' },
+      });
+
+      return review;
     });
   }
 }
