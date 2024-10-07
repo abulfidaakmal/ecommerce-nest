@@ -22,8 +22,8 @@ export class OrderService {
       0,
     );
 
-    const totalPrice = products.reduce(
-      (acc, curr) => (acc + curr.price) * totalQuantity,
+    const totalPrice = orderDetails.reduce(
+      (acc, curr, index) => acc + products[index].price * curr.quantity,
       0,
     );
 
@@ -47,7 +47,10 @@ export class OrderService {
     };
   }
 
-  async create(username: string, req: CreateOrderRequest[]): Promise<any> {
+  async create(
+    username: string,
+    req: CreateOrderRequest[],
+  ): Promise<OrderResponse> {
     this.logger.info(`Create order request: ${JSON.stringify(req)}`);
     const createRequest: CreateOrderRequest[] = this.validationService.validate(
       OrderValidation.CREATE,
