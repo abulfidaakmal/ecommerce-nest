@@ -1,5 +1,6 @@
 import { PrismaService } from '../../common/prisma.service';
 import { Injectable } from '@nestjs/common';
+import { GetAllOrderRequest } from '../../model/order.model';
 
 @Injectable()
 export class OrderRepository {
@@ -91,6 +92,61 @@ export class OrderRepository {
       );
 
       return order;
+    });
+  }
+
+  async getTotalOrder(username: string, status): Promise<number> {
+    return this.prismaService.order.count({
+      where: {
+        username,
+        order_details: {
+          some: {
+            status,
+          },
+        },
+      },
+    });
+  }
+
+  async getAll(username: string, status, req: GetAllOrderRequest) {
+    return this.prismaService.order.findMany({
+      where: {
+        username,
+        order_details: {
+          some: {
+            status,
+          },
+        },
+      },
+      select: {
+        id: true,
+        order_details: {
+          select: {
+            quantity: true,
+            status: true,
+            created_at: true,
+            updated_at: true,
+            products: {
+              select: {
+                id: true,
+                name: true,
+                stock: true,
+                price: true,
+                image_url: true,
+                users: {
+                  select: {
+                    sellers: {
+                      select: { name: true },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      take: req.size,
+      skip: req.page,
     });
   }
 }

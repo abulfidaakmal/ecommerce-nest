@@ -3,8 +3,14 @@ import { HttpException, Inject, Injectable } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { OrderRepository } from './order.repository';
 import { ValidationService } from '../../common/validation.service';
-import { CreateOrderRequest, OrderResponse } from '../../model/order.model';
+import {
+  CreateOrderRequest,
+  GetAllOrderRequest,
+  OrderResponse,
+} from '../../model/order.model';
 import { OrderValidation } from './order.validation';
+import { ResponseModel } from '../../model/response.model';
+import { Status } from '@prisma/client';
 
 @Injectable()
 export class OrderService {
@@ -106,5 +112,64 @@ export class OrderService {
     );
 
     return this.toOrderResponse(orders, products);
+  }
+
+  async getAll(
+    username: string,
+    req: GetAllOrderRequest,
+  ): Promise<ResponseModel<OrderResponse[]>> {
+    this.logger.info(`Get all order request: ${JSON.stringify(req)}`);
+    const getAllRequest: GetAllOrderRequest = this.validationService.validate(
+      OrderValidation.GET,
+      req,
+    );
+
+    let status: any = {
+      in: [Status.PENDING, Status.CONFIRMED, Status.SHIPPED, Status.PROCESSING],
+    };
+
+    if (getAllRequest.status === 'COMPLETED') {
+      status = { in: [Status.COMPLETED, Status.DELIVERED] };
+    } else if (getAllRequest.status === 'CANCELLED') {
+      status = { in: [Status.CANCELLED, Status.CANCELLEDBYSELLER] };
+    }
+
+    const total_data = await this.orderRepository.getTotalOrder(
+      username,
+      status,
+    );
+
+    if (!total_data) {
+      throw new HttpException('no order available', 404);
+    }
+
+    const current_page = getAllRequest.page;
+    const size = getAllRequest.size;
+    getAllRequest.page = (current_page - 1) * size;
+    const total_page = Math.ceil(total_data / size);
+
+    const orders = await this.orderRepository.getAll(
+      username,
+      status,
+      getAllRequest,
+    );
+
+    const result = await Promise.all(
+      orders.map(async (order) => {
+        const products = order.order_details.map((detail) => detail.products);
+
+        return this.toOrderResponse(order, products);
+      }),
+    );
+
+    return {
+      data: result,
+      paging: {
+        total_page,
+        size,
+        total_data,
+        current_page,
+      },
+    };
   }
 }

@@ -387,4 +387,34 @@ export class TestService {
 
     return product.stock;
   }
+
+  async createManyOrder() {
+    const addressId = await this.getAddressId();
+    const productId = await this.getProductId();
+
+    const order = await this.prismaService.order.create({
+      data: {
+        username: 'test',
+        address_id: addressId,
+      },
+      select: { id: true },
+    });
+
+    await this.prismaService.orderDetails.createMany({
+      data: [
+        {
+          product_id: productId,
+          quantity: 1,
+          price: 1000,
+          order_id: order.id,
+        },
+        {
+          product_id: productId,
+          quantity: 2,
+          price: 1000,
+          order_id: order.id,
+        },
+      ],
+    });
+  }
 }

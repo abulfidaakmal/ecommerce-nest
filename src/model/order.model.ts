@@ -21,3 +21,9 @@ export class CreateOrderRequest {
   product_id: number;
   quantity: number;
 }
+
+export class GetAllOrderRequest {
+  status?: string;
+  page: number;
+  size: number;
+}

@@ -160,4 +160,79 @@ describe('OrderController (e2e)', () => {
       );
     });
   });
+
+  describe('/api/orders (GET)', () => {
+    beforeEach(async () => {
+      await testService.createAddressAndSelect();
+      await testService.createSeller();
+      await testService.createManyOrder();
+    });
+
+    it('should can get all order', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/orders')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ])
+        .query({
+          page: 1,
+          size: 1,
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data[0].order.id).toBeDefined();
+      expect(response.body.data[0].order.total_price).toBe(3000);
+      expect(response.body.data[0].order.total_quantity).toBe(3);
+      expect(response.body.data[0].product[0].id).toBeDefined();
+      expect(response.body.data[0].product[0].name).toBe('test123');
+      expect(response.body.data[0].product[0].price).toBe(1000);
+      expect(response.body.data[0].product[0].quantity).toBe(1);
+      expect(response.body.data[0].product[0].status).toBe('PENDING');
+      expect(response.body.data[0].product[0].seller_name).toBe('test');
+      expect(response.body.data[0].product[0].image_url).toBe('test');
+      expect(response.body.data[0].product[1].id).toBeDefined();
+      expect(response.body.data[0].product[1].name).toBe('test123');
+      expect(response.body.data[0].product[1].price).toBe(1000);
+      expect(response.body.data[0].product[1].quantity).toBe(2);
+      expect(response.body.data[0].product[1].status).toBe('PENDING');
+      expect(response.body.data[0].product[1].seller_name).toBe('test');
+      expect(response.body.data[0].product[1].image_url).toBe('test');
+      expect(response.body.data[0].created_at).toBeDefined();
+      expect(response.body.data[0].updated_at).toBeDefined();
+      expect(response.body.paging.current_page).toBe(1);
+      expect(response.body.paging.size).toBe(1);
+      expect(response.body.paging.total_data).toBe(1);
+      expect(response.body.paging.total_page).toBe(1);
+    });
+
+    it('should reject if request is not valid', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/orders')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ])
+        .query({
+          page: 'wrong',
+          size: 'wrong',
+          status: 'wrong',
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.errors).toBeDefined();
+    });
+
+    it('should reject if no order available', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/orders')
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ])
+        .query({
+          status: 'CANCELLED',
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBe('no order available');
+    });
+  });
 });
