@@ -7,4 +7,9 @@ export class ReviewValidation {
     image_url: z.string().max(255).optional(),
     product_id: z.coerce.number().min(1).positive(),
   });
+
+  static readonly GET: ZodType = z.object({
+    page: z.coerce.number().positive().default(1),
+    size: z.coerce.number().positive().max(50).default(10),
+  });
 }

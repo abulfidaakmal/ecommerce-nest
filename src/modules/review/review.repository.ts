@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
-import { CreateReviewRequest } from '../../model/review.model';
+import {
+  CreateReviewRequest,
+  GetAllReviewRequest,
+} from '../../model/review.model';
 
 @Injectable()
 export class ReviewRepository {
@@ -51,6 +54,35 @@ export class ReviewRepository {
       });
 
       return review;
+    });
+  }
+
+  async getTotalReview(username: string): Promise<number> {
+    return this.prismaService.review.count({
+      where: { username },
+    });
+  }
+
+  async getAll(username: string, req: GetAllReviewRequest) {
+    return this.prismaService.review.findMany({
+      where: { username },
+      select: {
+        id: true,
+        rating: true,
+        summary: true,
+        image_url: true,
+        product_id: true,
+        products: {
+          select: {
+            name: true,
+            image_url: true,
+          },
+        },
+        created_at: true,
+        updated_at: true,
+      },
+      take: req.size,
+      skip: req.page,
     });
   }
 }

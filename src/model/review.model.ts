@@ -16,3 +16,8 @@ export class CreateReviewRequest {
   image_url?: string;
   product_id: number;
 }
+
+export class GetAllReviewRequest {
+  page: number;
+  size: number;
+}

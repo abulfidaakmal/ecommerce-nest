@@ -1,12 +1,20 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
+  Get,
+  ParseIntPipe,
   Post,
+  Query,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { ReviewService } from './review.service';
-import { CreateReviewRequest, ReviewResponse } from '../../model/review.model';
+import {
+  CreateReviewRequest,
+  GetAllReviewRequest,
+  ReviewResponse,
+} from '../../model/review.model';
 import { ResponseModel } from '../../model/response.model';
 import { Auth } from '../../common/auth.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -42,5 +50,16 @@ export class ReviewController {
     return {
       data: result,
     };
+  }
+
+  @Get()
+  async getAll(
+    @Auth() username: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('size', new DefaultValuePipe(10), ParseIntPipe) size: number,
+  ): Promise<ResponseModel<ReviewResponse[]>> {
+    const req: GetAllReviewRequest = { page, size };
+
+    return this.reviewService.getAll(username, req);
   }
 }

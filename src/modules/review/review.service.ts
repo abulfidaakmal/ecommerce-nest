@@ -3,10 +3,15 @@ import { Logger } from 'winston';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { ReviewRepository } from './review.repository';
 import { ValidationService } from '../../common/validation.service';
-import { CreateReviewRequest, ReviewResponse } from '../../model/review.model';
+import {
+  CreateReviewRequest,
+  GetAllReviewRequest,
+  ReviewResponse,
+} from '../../model/review.model';
 import { ReviewValidation } from './review.validation';
 import { WishlistService } from '../wishlist/wishlist.service';
 import { Status } from '@prisma/client';
+import { ResponseModel } from '../../model/response.model';
 
 @Injectable()
 export class ReviewService {
@@ -75,5 +80,42 @@ export class ReviewService {
     const review = await this.reviewRepository.create(username, createRequest);
 
     return this.toReviewResponse(review);
+  }
+
+  async getAll(
+    username: string,
+    req: GetAllReviewRequest,
+  ): Promise<ResponseModel<ReviewResponse[]>> {
+    this.logger.info(`Get all review request: ${JSON.stringify(req)}`);
+    const getAllRequest: GetAllReviewRequest = this.validationService.validate(
+      ReviewValidation.GET,
+      req,
+    );
+
+    const total_data = await this.reviewRepository.getTotalReview(username);
+
+    if (!total_data) {
+      throw new HttpException('no reviews available', 404);
+    }
+
+    const current_page = getAllRequest.page;
+    const size = getAllRequest.size;
+    getAllRequest.page = (current_page - 1) * size;
+    const total_page = Math.ceil(total_data / size);
+
+    const reviews = await this.reviewRepository.getAll(username, getAllRequest);
+    const result = reviews.map((review) => {
+      return this.toReviewResponse(review);
+    });
+
+    return {
+      data: result,
+      paging: {
+        current_page,
+        size,
+        total_data,
+        total_page,
+      },
+    };
   }
 }
