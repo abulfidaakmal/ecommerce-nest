@@ -225,4 +225,65 @@ describe('ReviewController (e2e)', () => {
       expect(response.body.errors).toBe('no reviews available');
     });
   });
+
+  describe('/api/reviews (PATCH)', () => {
+    beforeEach(async () => {
+      await testService.createReview();
+    });
+
+    it('should can update review', async () => {
+      const reviewId = await testService.getReviewId();
+
+      const response = await request(app.getHttpServer())
+        .patch(`/api/reviews/${reviewId}`)
+        .send({
+          rating: 1,
+          summary: 'example',
+        })
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.id).toBe(reviewId);
+      expect(response.body.data.rating).toBe(1);
+      expect(response.body.data.summary).toBe('example');
+      expect(response.body.data.image_url).toBeDefined();
+      expect(response.body.data.product_id).toBeDefined();
+      expect(response.body.data.product_name).toBe('test123');
+      expect(response.body.data.product_image).toBe('test');
+      expect(response.body.data.created_at).toBeDefined();
+      expect(response.body.data.updated_at).toBeDefined();
+    });
+
+    it('should reject if request is not valid', async () => {
+      const reviewId = await testService.getReviewId();
+
+      const response = await request(app.getHttpServer())
+        .patch(`/api/reviews/${reviewId}`)
+        .send({
+          rating: 'wrong',
+          summary: '',
+        })
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(400);
+      expect(response.body.errors).toBeDefined();
+    });
+
+    it('should reject if review is not found', async () => {
+      const reviewId = await testService.getReviewId();
+
+      const response = await request(app.getHttpServer())
+        .patch(`/api/reviews/${reviewId + 100}`)
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBe('review is not found');
+    });
+  });
 });

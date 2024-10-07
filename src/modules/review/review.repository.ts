@@ -3,6 +3,7 @@ import { PrismaService } from '../../common/prisma.service';
 import {
   CreateReviewRequest,
   GetAllReviewRequest,
+  UpdateReviewRequest,
 } from '../../model/review.model';
 
 @Injectable()
@@ -83,6 +84,34 @@ export class ReviewRepository {
       },
       take: req.size,
       skip: req.page,
+    });
+  }
+
+  async isReviewExists(username: string, review_id: number): Promise<number> {
+    return this.prismaService.review.count({
+      where: { username, id: review_id },
+    });
+  }
+
+  async update(username: string, review_id: number, req: UpdateReviewRequest) {
+    return this.prismaService.review.update({
+      where: { username, id: review_id },
+      data: req,
+      select: {
+        id: true,
+        rating: true,
+        summary: true,
+        image_url: true,
+        product_id: true,
+        products: {
+          select: {
+            name: true,
+            image_url: true,
+          },
+        },
+        created_at: true,
+        updated_at: true,
+      },
     });
   }
 }

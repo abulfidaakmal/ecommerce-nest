@@ -12,4 +12,10 @@ export class ReviewValidation {
     page: z.coerce.number().positive().default(1),
     size: z.coerce.number().positive().max(50).default(10),
   });
+
+  static readonly UPDATE: ZodType = z.object({
+    rating: z.coerce.number().int().min(1).max(5).default(5).optional(),
+    summary: z.string().trim().min(5).optional(),
+    image_url: z.string().max(255).optional(),
+  });
 }

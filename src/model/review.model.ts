@@ -21,3 +21,9 @@ export class GetAllReviewRequest {
   page: number;
   size: number;
 }
+
+export class UpdateReviewRequest {
+  rating?: number;
+  summary?: string;
+  image_url?: string;
+}

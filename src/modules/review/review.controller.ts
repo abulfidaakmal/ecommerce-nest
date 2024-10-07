@@ -3,7 +3,9 @@ import {
   Controller,
   DefaultValuePipe,
   Get,
+  Param,
   ParseIntPipe,
+  Patch,
   Post,
   Query,
   UploadedFile,
@@ -14,6 +16,7 @@ import {
   CreateReviewRequest,
   GetAllReviewRequest,
   ReviewResponse,
+  UpdateReviewRequest,
 } from '../../model/review.model';
 import { ResponseModel } from '../../model/response.model';
 import { Auth } from '../../common/auth.decorator';
@@ -61,5 +64,32 @@ export class ReviewController {
     const req: GetAllReviewRequest = { page, size };
 
     return this.reviewService.getAll(username, req);
+  }
+
+  @Patch('/:reviewId')
+  @UseInterceptors(FileInterceptor('image'))
+  async update(
+    @Auth() username: string,
+    @Body() req: UpdateReviewRequest,
+    @Param('reviewId', ParseIntPipe) review_id: number,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<ResponseModel<ReviewResponse>> {
+    if (file) {
+      req.image_url = await this.cloudinaryService.upload(file, {
+        folder: 'reviews',
+        width: 400,
+        height: 400,
+      });
+    }
+
+    const result: ReviewResponse = await this.reviewService.update(
+      username,
+      review_id,
+      req,
+    );
+
+    return {
+      data: result,
+    };
   }
 }

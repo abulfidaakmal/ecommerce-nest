@@ -481,4 +481,13 @@ export class TestService {
       },
     });
   }
+
+  async getReviewId() {
+    const review = await this.prismaService.review.findFirst({
+      where: { username: 'test' },
+      select: { id: true },
+    });
+
+    return review.id;
+  }
 }

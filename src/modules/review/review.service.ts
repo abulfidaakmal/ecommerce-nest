@@ -7,6 +7,7 @@ import {
   CreateReviewRequest,
   GetAllReviewRequest,
   ReviewResponse,
+  UpdateReviewRequest,
 } from '../../model/review.model';
 import { ReviewValidation } from './review.validation';
 import { WishlistService } from '../wishlist/wishlist.service';
@@ -36,6 +37,17 @@ export class ReviewService {
       created_at: review.created_at,
       updated_at: review.updated_at,
     };
+  }
+
+  async isReviewExists(username: string, review_id: number): Promise<void> {
+    const check = await this.reviewRepository.isReviewExists(
+      username,
+      review_id,
+    );
+
+    if (!check) {
+      throw new HttpException('review is not found', 404);
+    }
   }
 
   async create(
@@ -117,5 +129,27 @@ export class ReviewService {
         total_page,
       },
     };
+  }
+
+  async update(
+    username: string,
+    review_id: number,
+    req: UpdateReviewRequest,
+  ): Promise<ReviewResponse> {
+    this.logger.info(`Update review request: ${JSON.stringify(req)}`);
+    const updateRequest: UpdateReviewRequest = this.validationService.validate(
+      ReviewValidation.UPDATE,
+      req,
+    );
+
+    await this.isReviewExists(username, review_id);
+
+    const review = await this.reviewRepository.update(
+      username,
+      review_id,
+      updateRequest,
+    );
+
+    return this.toReviewResponse(review);
   }
 }
