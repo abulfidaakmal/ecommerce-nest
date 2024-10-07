@@ -152,4 +152,14 @@ export class ReviewService {
 
     return this.toReviewResponse(review);
   }
+
+  async remove(username: string, review_id: number): Promise<string> {
+    this.logger.info(`Remove review request: ${review_id}`);
+
+    await this.isReviewExists(username, review_id);
+
+    await this.reviewRepository.remove(username, review_id);
+
+    return 'OK';
+  }
 }

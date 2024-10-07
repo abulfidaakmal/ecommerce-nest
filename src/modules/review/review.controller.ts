@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   DefaultValuePipe,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -87,6 +88,18 @@ export class ReviewController {
       review_id,
       req,
     );
+
+    return {
+      data: result,
+    };
+  }
+
+  @Delete('/:reviewId')
+  async remove(
+    @Auth() username: string,
+    @Param('reviewId', ParseIntPipe) review_id: number,
+  ): Promise<ResponseModel<string>> {
+    const result = await this.reviewService.remove(username, review_id);
 
     return {
       data: result,

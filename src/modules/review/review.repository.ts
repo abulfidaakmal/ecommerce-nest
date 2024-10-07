@@ -114,4 +114,10 @@ export class ReviewRepository {
       },
     });
   }
+
+  async remove(username: string, review_id: number): Promise<void> {
+    await this.prismaService.review.delete({
+      where: { username, id: review_id },
+    });
+  }
 }
