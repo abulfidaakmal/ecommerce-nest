@@ -461,4 +461,24 @@ export class TestService {
       data: { status: 'DELIVERED' },
     });
   }
+
+  async removeAllReview() {
+    await this.prismaService.review.deleteMany({
+      where: { username: 'test' },
+    });
+  }
+
+  async createReview() {
+    const productId = await this.getProductId();
+
+    await this.prismaService.review.create({
+      data: {
+        username: 'test',
+        rating: 5,
+        summary: 'test',
+        image_url: 'test',
+        product_id: productId,
+      },
+    });
+  }
 }

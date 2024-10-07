@@ -12,6 +12,7 @@ import { ProductModule } from './modules/product/product.module';
 import { WishlistModule } from './modules/wishlist/wishlist.module';
 import { CartModule } from './modules/cart/cart.module';
 import { OrderModule } from './modules/order/order.module';
+import { ReviewModule } from './modules/review/review.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { OrderModule } from './modules/order/order.module';
     WishlistModule,
     CartModule,
     OrderModule,
+    ReviewModule,
   ],
   controllers: [],
   providers: [
