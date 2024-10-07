@@ -417,4 +417,32 @@ export class TestService {
       ],
     });
   }
+
+  async getOrderId() {
+    const order = await this.prismaService.order.findFirst({
+      where: { username: 'test' },
+      select: { id: true },
+    });
+
+    return order.id;
+  }
+
+  async createOrder() {
+    const addressId = await this.getAddressId();
+    const productId = await this.getProductId();
+
+    await this.prismaService.order.create({
+      data: {
+        username: 'test',
+        address_id: addressId,
+        order_details: {
+          create: {
+            quantity: 2,
+            price: 1000,
+            product_id: productId,
+          },
+        },
+      },
+    });
+  }
 }

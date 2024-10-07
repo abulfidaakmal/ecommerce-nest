@@ -1,6 +1,9 @@
 import { PrismaService } from '../../common/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { GetAllOrderRequest } from '../../model/order.model';
+import {
+  GetAllOrderRequest,
+  GetOrderDetailRequest,
+} from '../../model/order.model';
 
 @Injectable()
 export class OrderRepository {
@@ -147,6 +150,71 @@ export class OrderRepository {
       },
       take: req.size,
       skip: req.page,
+    });
+  }
+
+  async isOrderExists(username: string, order_id: number): Promise<number> {
+    return this.prismaService.order.count({
+      where: { username, id: order_id },
+    });
+  }
+
+  async getOrderDetail(username: string, req: GetOrderDetailRequest) {
+    return this.prismaService.order.findFirst({
+      where: {
+        username,
+        id: req.order_id,
+        order_details: {
+          some: {
+            order_id: req.order_id,
+            product_id: req.product_id,
+          },
+        },
+      },
+      select: {
+        addresses: {
+          select: {
+            id: true,
+            street: true,
+            city: true,
+            province: true,
+            postal_code: true,
+            name: true,
+            phone: true,
+          },
+        },
+        order_details: {
+          select: {
+            quantity: true,
+            price: true,
+            status: true,
+            created_at: true,
+            updated_at: true,
+            products: {
+              select: {
+                name: true,
+                image_url: true,
+                weight: true,
+                users: {
+                  select: {
+                    sellers: {
+                      select: {
+                        name: true,
+                        addresses: {
+                          select: {
+                            city: true,
+                            province: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
   }
 }

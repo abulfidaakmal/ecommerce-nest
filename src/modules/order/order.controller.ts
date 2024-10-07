@@ -3,6 +3,7 @@ import {
   Controller,
   DefaultValuePipe,
   Get,
+  Param,
   ParseIntPipe,
   Post,
   Query,
@@ -12,6 +13,8 @@ import { Auth } from '../../common/auth.decorator';
 import {
   CreateOrderRequest,
   GetAllOrderRequest,
+  GetOrderDetailRequest,
+  OrderDetailResponse,
   OrderResponse,
 } from '../../model/order.model';
 import { ResponseModel } from '../../model/response.model';
@@ -42,5 +45,23 @@ export class OrderController {
     const req: GetAllOrderRequest = { page, size, status };
 
     return this.orderService.getAll(username, req);
+  }
+
+  @Get('/:orderId/products/:productId')
+  async getOrderDetail(
+    @Auth() username: string,
+    @Param('orderId', ParseIntPipe) order_id: number,
+    @Param('productId', ParseIntPipe) product_id: number,
+  ): Promise<ResponseModel<OrderDetailResponse>> {
+    const req: GetOrderDetailRequest = { order_id, product_id };
+
+    const result: OrderDetailResponse = await this.orderService.getOrderDetail(
+      username,
+      req,
+    );
+
+    return {
+      data: result,
+    };
   }
 }

@@ -6,11 +6,14 @@ import { ValidationService } from '../../common/validation.service';
 import {
   CreateOrderRequest,
   GetAllOrderRequest,
+  GetOrderDetailRequest,
+  OrderDetailResponse,
   OrderResponse,
 } from '../../model/order.model';
 import { OrderValidation } from './order.validation';
 import { ResponseModel } from '../../model/response.model';
 import { Status } from '@prisma/client';
+import { WishlistService } from '../wishlist/wishlist.service';
 
 @Injectable()
 export class OrderService {
@@ -18,6 +21,7 @@ export class OrderService {
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
     private readonly orderRepository: OrderRepository,
     private readonly validationService: ValidationService,
+    private readonly wishlistService: WishlistService,
   ) {}
 
   toOrderResponse(order, products: any): OrderResponse {
@@ -51,6 +55,14 @@ export class OrderService {
       created_at: orderDetails[0].created_at,
       updated_at: orderDetails[0].updated_at,
     };
+  }
+
+  async isOrderExists(username: string, order_id: number): Promise<void> {
+    const check = await this.orderRepository.isOrderExists(username, order_id);
+
+    if (!check) {
+      throw new HttpException('order is not found', 404);
+    }
   }
 
   async create(
@@ -170,6 +182,55 @@ export class OrderService {
         total_data,
         current_page,
       },
+    };
+  }
+
+  async getOrderDetail(
+    username: string,
+    req: GetOrderDetailRequest,
+  ): Promise<OrderDetailResponse> {
+    this.logger.info(`Get order detail request: ${JSON.stringify(req)}`);
+
+    await this.isOrderExists(username, req.order_id);
+    await this.wishlistService.isProductExists(req.product_id);
+
+    const order = await this.orderRepository.getOrderDetail(username, req);
+
+    const address = order.addresses;
+    const orderDetails = order.order_details[0];
+    const product = orderDetails.products;
+    const seller = product.users.sellers;
+
+    return {
+      order: {
+        id: req.order_id,
+        status: orderDetails.status,
+        address: {
+          id: address.id,
+          street: address.street,
+          city: address.city,
+          province: address.province,
+          postal_code: address.postal_code,
+          name: address.name,
+          phone: address.phone,
+        },
+        price: orderDetails.price,
+        quantity: orderDetails.quantity,
+        total: orderDetails.price * orderDetails.quantity,
+      },
+      product: {
+        id: req.product_id,
+        name: product.name,
+        image_url: product.image_url,
+        weight: product.weight,
+        seller: {
+          name: seller.name,
+          city: seller.addresses.city,
+          province: seller.addresses.province,
+        },
+      },
+      created_at: orderDetails.created_at,
+      updated_at: orderDetails.updated_at,
     };
   }
 }
