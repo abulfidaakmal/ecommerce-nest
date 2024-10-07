@@ -233,4 +233,25 @@ export class OrderService {
       updated_at: orderDetails.updated_at,
     };
   }
+
+  async cancelProduct(
+    username: string,
+    req: GetOrderDetailRequest,
+  ): Promise<string> {
+    this.logger.info(`Cancel product order request: ${JSON.stringify(req)}`);
+
+    await this.isOrderExists(username, req.order_id);
+    await this.wishlistService.isProductExists(req.product_id);
+
+    const orderStatus = await this.orderRepository.getOrderStatus(req);
+
+    const validStatus = ['PENDING', 'CONFIRMED'];
+    if (!validStatus.includes(orderStatus.status)) {
+      throw new HttpException('product cannot be cancelled', 400);
+    }
+
+    await this.orderRepository.cancelProduct(req);
+
+    return 'OK';
+  }
 }

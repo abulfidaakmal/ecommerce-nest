@@ -217,4 +217,36 @@ export class OrderRepository {
       },
     });
   }
+
+  async getOrderStatus(req: GetOrderDetailRequest) {
+    return this.prismaService.orderDetails.findFirst({
+      where: { order_id: req.order_id, product_id: req.product_id },
+      select: {
+        status: true,
+      },
+    });
+  }
+
+  async cancelProduct(req: GetOrderDetailRequest) {
+    await this.prismaService.$transaction(async (prisma) => {
+      const order = await prisma.orderDetails.findFirst({
+        where: { order_id: req.order_id, product_id: req.product_id },
+        select: { id: true, quantity: true },
+      });
+
+      await prisma.product.update({
+        where: { id: req.product_id },
+        data: {
+          stock: {
+            increment: order.quantity,
+          },
+        },
+      });
+
+      await prisma.orderDetails.update({
+        where: { id: order.id },
+        data: { status: 'CANCELLED' },
+      });
+    });
+  }
 }

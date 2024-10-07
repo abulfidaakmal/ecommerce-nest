@@ -445,4 +445,20 @@ export class TestService {
       },
     });
   }
+
+  async getOrderStatus() {
+    const order = await this.prismaService.orderDetails.findFirst({
+      where: { orders: { username: 'test' } },
+      select: { status: true },
+    });
+
+    return order.status;
+  }
+
+  async updateOrderStatusToDelivered() {
+    await this.prismaService.orderDetails.updateMany({
+      where: { orders: { username: 'test' } },
+      data: { status: 'DELIVERED' },
+    });
+  }
 }

@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Query,
 } from '@nestjs/common';
@@ -59,6 +60,21 @@ export class OrderController {
       username,
       req,
     );
+
+    return {
+      data: result,
+    };
+  }
+
+  @Patch('/:orderId/products/:productId')
+  async cancelProduct(
+    @Auth() username: string,
+    @Param('orderId', ParseIntPipe) order_id: number,
+    @Param('productId', ParseIntPipe) product_id: number,
+  ): Promise<ResponseModel<string>> {
+    const req: GetOrderDetailRequest = { order_id, product_id };
+
+    const result: string = await this.orderService.cancelProduct(username, req);
 
     return {
       data: result,
