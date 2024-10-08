@@ -3,12 +3,15 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { OrderSellerRepository } from './order-seller.repository';
 import {
+  GetOrderDetailRequest,
+  OrderSellerDetailResponse,
   OrderSellerResponse,
   SearchOrderSellerRequest,
 } from '../../model/order-seller.model';
 import { ResponseModel } from '../../model/response.model';
 import { ValidationService } from '../../common/validation.service';
 import { OrderSellerValidation } from './order-seller.validation';
+import { WishlistService } from '../wishlist/wishlist.service';
 
 @Injectable()
 export class OrderSellerService {
@@ -16,6 +19,7 @@ export class OrderSellerService {
     @Inject(WINSTON_MODULE_PROVIDER) private logger: Logger,
     private readonly orderSellerRepository: OrderSellerRepository,
     private readonly validationService: ValidationService,
+    private readonly wishlistService: WishlistService,
   ) {}
 
   private toOrderSellerResponse(order): OrderSellerResponse {
@@ -37,6 +41,17 @@ export class OrderSellerService {
       created_at: order.created_at,
       updated_at: order.updated_at,
     };
+  }
+
+  async isOrderExists(username: string, order_id: number): Promise<void> {
+    const check = await this.orderSellerRepository.isOrderExists(
+      username,
+      order_id,
+    );
+
+    if (!check) {
+      throw new HttpException('order is not found', 404);
+    }
   }
 
   async search(
@@ -103,6 +118,42 @@ export class OrderSellerService {
         total_page,
         total_data,
       },
+    };
+  }
+
+  async getOrderDetail(
+    username: string,
+    req: GetOrderDetailRequest,
+  ): Promise<OrderSellerDetailResponse> {
+    this.logger.info(`Get order detail request: ${JSON.stringify(req)}`);
+
+    await this.wishlistService.isProductExists(req.product_id);
+    await this.isOrderExists(username, req.order_id);
+
+    const order = await this.orderSellerRepository.getOrderDetail(
+      username,
+      req,
+    );
+
+    const address = order.orders.addresses;
+
+    return {
+      order: {
+        id: req.order_id,
+        price: order.price,
+        quantity: order.quantity,
+        status: order.status,
+        total: order.price * order.quantity,
+        address,
+      },
+      product: {
+        id: req.product_id,
+        name: order.products.name,
+        image_url: order.products.image_url,
+        weight: order.products.weight,
+      },
+      created_at: order.created_at,
+      updated_at: order.updated_at,
     };
   }
 }

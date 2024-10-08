@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
-import { SearchOrderSellerRequest } from '../../model/order-seller.model';
+import {
+  GetOrderDetailRequest,
+  SearchOrderSellerRequest,
+} from '../../model/order-seller.model';
 
 @Injectable()
 export class OrderSellerRepository {
@@ -41,6 +44,41 @@ export class OrderSellerRepository {
       },
       take: req.size,
       skip: req.page,
+    });
+  }
+
+  async isOrderExists(username: string, order_id: number): Promise<number> {
+    return this.prismaService.orderDetails.count({
+      where: { products: { username }, order_id: order_id },
+    });
+  }
+
+  async getOrderDetail(username: string, req: GetOrderDetailRequest) {
+    return this.prismaService.orderDetails.findFirst({
+      where: {
+        products: { username },
+        order_id: req.order_id,
+        product_id: req.product_id,
+      },
+      select: {
+        price: true,
+        quantity: true,
+        status: true,
+        created_at: true,
+        updated_at: true,
+        orders: {
+          select: {
+            addresses: true,
+          },
+        },
+        products: {
+          select: {
+            name: true,
+            image_url: true,
+            weight: true,
+          },
+        },
+      },
     });
   }
 }
