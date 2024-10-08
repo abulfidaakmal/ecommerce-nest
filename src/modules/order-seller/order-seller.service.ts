@@ -7,6 +7,7 @@ import {
   OrderSellerDetailResponse,
   OrderSellerResponse,
   SearchOrderSellerRequest,
+  UpdateOrderSellerRequest,
 } from '../../model/order-seller.model';
 import { ResponseModel } from '../../model/response.model';
 import { ValidationService } from '../../common/validation.service';
@@ -155,5 +156,24 @@ export class OrderSellerService {
       created_at: order.created_at,
       updated_at: order.updated_at,
     };
+  }
+
+  async update(
+    username: string,
+    req: UpdateOrderSellerRequest,
+  ): Promise<OrderSellerResponse> {
+    this.logger.info(`Update order seller request: ${JSON.stringify(req)}`);
+    const updateRequest: UpdateOrderSellerRequest =
+      this.validationService.validate(OrderSellerValidation.UPDATE, req);
+
+    await this.wishlistService.isProductExists(updateRequest.product_id);
+    await this.isOrderExists(username, updateRequest.order_id);
+
+    const order = await this.orderSellerRepository.update(
+      username,
+      updateRequest,
+    );
+
+    return this.toOrderSellerResponse(order);
   }
 }

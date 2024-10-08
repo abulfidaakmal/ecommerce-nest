@@ -198,4 +198,93 @@ describe('OrderSellerController (e2e)', () => {
       expect(response.body.errors).toBeDefined();
     });
   });
+
+  describe('/api/seller/orders/:orderId/products/:productId (PATCH)', () => {
+    beforeEach(async () => {
+      await testService.createOrder();
+    });
+
+    it('should can update order', async () => {
+      const orderId = await testService.getOrderId();
+      const productId = await testService.getProductId();
+
+      let status = await testService.getOrderStatus();
+      expect(status).toBe('PENDING');
+
+      const response = await request(app.getHttpServer())
+        .patch(`/api/seller/orders/${orderId}/products/${productId}`)
+        .send({
+          status: 'CONFIRMED',
+        })
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.order.id).toBeDefined();
+      expect(response.body.data.order.customer).toBe('test');
+      expect(response.body.data.order.price).toBe(1000);
+      expect(response.body.data.order.quantity).toBe(2);
+      expect(response.body.data.order.status).toBe('CONFIRMED');
+      expect(response.body.data.product.id).toBeDefined();
+      expect(response.body.data.product.name).toBe('test123');
+      expect(response.body.data.product.image_url).toBe('test');
+      expect(response.body.data.created_at).toBeDefined();
+      expect(response.body.data.updated_at).toBeDefined();
+
+      status = await testService.getOrderStatus();
+      expect(status).toBe('CONFIRMED');
+    });
+
+    it('should reject if order is not found', async () => {
+      const orderId = await testService.getOrderId();
+      const productId = await testService.getProductId();
+
+      const response = await request(app.getHttpServer())
+        .patch(`/api/seller/orders/${orderId + 100}/products/${productId}`)
+        .send({
+          status: 'CONFIRMED',
+        })
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBe('order is not found');
+    });
+
+    it('should reject if product is not found', async () => {
+      const orderId = await testService.getOrderId();
+      const productId = await testService.getProductId();
+
+      const response = await request(app.getHttpServer())
+        .patch(`/api/seller/orders/${orderId}/products/${productId + 100}`)
+        .send({
+          status: 'CONFIRMED',
+        })
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBe('product is not found');
+    });
+
+    it('should reject if request is not valid', async () => {
+      const orderId = await testService.getOrderId();
+      const productId = await testService.getProductId();
+
+      const response = await request(app.getHttpServer())
+        .patch(`/api/seller/orders/${orderId}/products/${productId}`)
+        .send({
+          status: 'wrong',
+        })
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(400);
+      expect(response.body.errors).toBeDefined();
+    });
+  });
 });

@@ -3,6 +3,7 @@ import { PrismaService } from '../../common/prisma.service';
 import {
   GetOrderDetailRequest,
   SearchOrderSellerRequest,
+  UpdateOrderSellerRequest,
 } from '../../model/order-seller.model';
 
 @Injectable()
@@ -79,6 +80,50 @@ export class OrderSellerRepository {
           },
         },
       },
+    });
+  }
+
+  async update(username: string, req: UpdateOrderSellerRequest) {
+    return this.prismaService.$transaction(async (prisma) => {
+      const order = await prisma.orderDetails.findFirst({
+        where: {
+          products: { username },
+          order_id: req.order_id,
+          product_id: req.product_id,
+        },
+        select: { id: true },
+      });
+
+      return prisma.orderDetails.update({
+        where: { id: order.id },
+        data: {
+          status: req.status,
+        },
+        select: {
+          id: true,
+          price: true,
+          quantity: true,
+          status: true,
+          orders: {
+            select: {
+              users: {
+                select: {
+                  username: true,
+                },
+              },
+            },
+          },
+          products: {
+            select: {
+              id: true,
+              name: true,
+              image_url: true,
+            },
+          },
+          created_at: true,
+          updated_at: true,
+        },
+      });
     });
   }
 }

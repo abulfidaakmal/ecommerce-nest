@@ -56,3 +56,9 @@ export class GetOrderDetailRequest {
   order_id: number;
   product_id: number;
 }
+
+export class UpdateOrderSellerRequest {
+  order_id: number;
+  product_id: number;
+  status: Status;
+}

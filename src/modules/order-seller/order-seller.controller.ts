@@ -1,9 +1,11 @@
 import {
+  Body,
   Controller,
   DefaultValuePipe,
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Query,
 } from '@nestjs/common';
 import { OrderSellerService } from './order-seller.service';
@@ -14,6 +16,7 @@ import {
   OrderSellerDetailResponse,
   OrderSellerResponse,
   SearchOrderSellerRequest,
+  UpdateOrderSellerRequest,
 } from '../../model/order-seller.model';
 import { Status } from '@prisma/client';
 import { Roles } from '../../common/roles.decorator';
@@ -47,6 +50,27 @@ export class OrderSellerController {
 
     const result: OrderSellerDetailResponse =
       await this.orderSellerService.getOrderDetail(username, req);
+
+    return {
+      data: result,
+    };
+  }
+
+  @Patch('/:orderId/products/:productId')
+  @Roles('SELLER', 'ADMIN')
+  async update(
+    @Auth() username: string,
+    @Param('orderId', ParseIntPipe) order_id: number,
+    @Param('productId', ParseIntPipe) product_id: number,
+    @Body() req: UpdateOrderSellerRequest,
+  ): Promise<ResponseModel<OrderSellerResponse>> {
+    req.order_id = order_id;
+    req.product_id = product_id;
+
+    const result: OrderSellerResponse = await this.orderSellerService.update(
+      username,
+      req,
+    );
 
     return {
       data: result,
