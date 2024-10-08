@@ -15,6 +15,7 @@ import { OrderModule } from './modules/order/order.module';
 import { ReviewModule } from './modules/review/review.module';
 import { MerchantModule } from './modules/merchant/merchant.module';
 import { ProductPublicModule } from './modules/product-public/product-public.module';
+import { OrderSellerModule } from './modules/order-seller/order-seller.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { ProductPublicModule } from './modules/product-public/product-public.mod
     ReviewModule,
     MerchantModule,
     ProductPublicModule,
+    OrderSellerModule,
   ],
   controllers: [],
   providers: [
