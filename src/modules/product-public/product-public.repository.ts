@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma.service';
+import {
+  GetProductByCategoryRequest,
+  ProductPublicResponse,
+} from '../../model/product-public.model';
 
 @Injectable()
 export class ProductPublicRepository {
@@ -51,6 +55,32 @@ export class ProductPublicRepository {
   async getSold(product_id: number) {
     return this.prismaService.orderDetails.count({
       where: { product_id },
+    });
+  }
+
+  async getTotalProductByCategory(category_name: string): Promise<number> {
+    return this.prismaService.product.count({
+      where: { categories: { name: category_name } },
+    });
+  }
+
+  async getProductByCategory(
+    req: GetProductByCategoryRequest,
+  ): Promise<ProductPublicResponse[]> {
+    return this.prismaService.product.findMany({
+      where: {
+        categories: {
+          name: req.category_name,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        image_url: true,
+      },
+      take: req.size,
+      skip: req.page,
     });
   }
 }

@@ -23,3 +23,16 @@ export class ProductByIdResponse {
     province: string;
   };
 }
+
+export class ProductPublicResponse {
+  id: number;
+  name: string;
+  image_url: string;
+  price: number;
+}
+
+export class GetProductByCategoryRequest {
+  category_name: string;
+  page: number;
+  size: number;
+}

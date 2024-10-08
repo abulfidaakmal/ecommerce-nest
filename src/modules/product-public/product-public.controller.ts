@@ -1,7 +1,18 @@
-import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  DefaultValuePipe,
+  Get,
+  Param,
+  ParseIntPipe,
+  Query,
+} from '@nestjs/common';
 import { ProductPublicService } from './product-public.service';
 import { ResponseModel } from '../../model/response.model';
-import { ProductByIdResponse } from '../../model/product-public.model';
+import {
+  GetProductByCategoryRequest,
+  ProductByIdResponse,
+  ProductPublicResponse,
+} from '../../model/product-public.model';
 
 @Controller('/api/public/products')
 export class ProductPublicController {
@@ -17,5 +28,16 @@ export class ProductPublicController {
     return {
       data: result,
     };
+  }
+
+  @Get('categories/:name')
+  async getByCategoryName(
+    @Param('name') category_name: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('size', new DefaultValuePipe(60), ParseIntPipe) size: number,
+  ): Promise<ResponseModel<ProductPublicResponse[]>> {
+    const req: GetProductByCategoryRequest = { category_name, size, page };
+
+    return this.productPublicService.getByCategoryName(req);
   }
 }

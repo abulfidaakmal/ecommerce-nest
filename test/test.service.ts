@@ -490,4 +490,13 @@ export class TestService {
 
     return review.id;
   }
+
+  async getCategoryName() {
+    const category = await this.prismaService.category.findFirst({
+      where: { username: 'test' },
+      select: { name: true },
+    });
+
+    return category.name;
+  }
 }
