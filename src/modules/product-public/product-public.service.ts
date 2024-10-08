@@ -8,11 +8,13 @@ import {
   GetProductByCategoryRequest,
   ProductByIdResponse,
   ProductPublicResponse,
+  SearchProductRequest,
 } from '../../model/product-public.model';
 import { ResponseModel } from '../../model/response.model';
 import { ValidationService } from '../../common/validation.service';
 import { ProductPublicValidation } from './product-public.validation';
 import { CategoryRepository } from '../category/category.repository';
+import { ElasticService } from '../elastic/elastic.service';
 
 @Injectable()
 export class ProductPublicService {
@@ -23,6 +25,7 @@ export class ProductPublicService {
     private readonly merchantService: MerchantService,
     private readonly validationService: ValidationService,
     private readonly categoryRepository: CategoryRepository,
+    private readonly elasticService: ElasticService,
   ) {}
 
   async getById(product_id: number): Promise<ProductByIdResponse> {
@@ -102,6 +105,72 @@ export class ProductPublicService {
 
     return {
       data: products,
+      paging: {
+        current_page,
+        size,
+        total_data,
+        total_page,
+      },
+    };
+  }
+
+  async search(
+    req: SearchProductRequest,
+  ): Promise<ResponseModel<ProductPublicResponse[]>> {
+    this.logger.info(`Search product request: ${JSON.stringify(req)}`);
+
+    const searchRequest: SearchProductRequest = this.validationService.validate(
+      ProductPublicValidation.SEARCH,
+      req,
+    );
+
+    const current_page = searchRequest.page;
+    const size = searchRequest.size;
+    searchRequest.page = (current_page - 1) * size;
+
+    let total_data: number;
+    let result: ProductPublicResponse[];
+
+    if (searchRequest.search) {
+      const searchResult = await this.elasticService.search(searchRequest);
+
+      total_data = await this.elasticService.getTotalData(searchRequest.search);
+
+      if (!total_data) {
+        throw new HttpException('product is not found', 404);
+      }
+
+      const products = searchResult.hits.hits;
+
+      result = products.map((hit: any) => ({
+        id: hit._id,
+        name: hit._source.name,
+        price: Number(hit._source.price),
+        image_url: hit._source.image_url,
+      }));
+    } else {
+      total_data =
+        await this.productPublicRepository.getTotalDataProductPopular();
+
+      if (!total_data) {
+        throw new HttpException('no product available', 404);
+      }
+
+      const products: any =
+        await this.productPublicRepository.getProductPopular(searchRequest);
+
+      result = products.map((product) => ({
+        id: product.id,
+        name: product.name,
+        price: Number(product.price),
+        image_url: product.image_url,
+      }));
+    }
+
+    const total_page = Math.ceil(total_data / size);
+
+    return {
+      data: result,
       paging: {
         current_page,
         size,

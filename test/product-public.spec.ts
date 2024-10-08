@@ -162,4 +162,86 @@ describe('ProductPublicController (e2e)', () => {
       expect(response.body.errors).toBe('no product available');
     });
   });
+
+  describe('/api/public/products (GET)', () => {
+    afterEach(async () => {
+      await testService.removeAllProduct();
+    });
+
+    it('should can search products', async () => {
+      await testService.createProduct();
+
+      const response = await request(app.getHttpServer())
+        .get(`/api/public/products`)
+        .query({
+          page: 1,
+          size: 1,
+          search: 'test',
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data[0].id).toBeDefined();
+      expect(response.body.data[0].name).toBe('test');
+      expect(response.body.data[0].image_url).toBe('test');
+      expect(response.body.data[0].price).toBe(1000);
+      expect(response.body.paging.current_page).toBe(1);
+      expect(response.body.paging.size).toBe(1);
+      expect(response.body.paging.total_data).toBe(1);
+      expect(response.body.paging.total_page).toBe(1);
+    });
+
+    it('should reject if product is not found', async () => {
+      await testService.createProduct();
+
+      const response = await request(app.getHttpServer())
+        .get(`/api/public/products`)
+        .query({
+          page: 1,
+          size: 1,
+          search: 'not found',
+        });
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBe('product is not found');
+    });
+
+    it('should can get products popular if the query does not exists', async () => {
+      const response = await request(app.getHttpServer()).get(
+        `/api/public/products`,
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body.data[0].id).toBeDefined();
+      expect(response.body.data[0].name).toBe('test123');
+      expect(response.body.data[0].image_url).toBe('test');
+      expect(response.body.data[0].price).toBe(1000);
+      expect(response.body.paging.current_page).toBe(1);
+      expect(response.body.paging.size).toBe(60);
+      expect(response.body.paging.total_data).toBe(1);
+      expect(response.body.paging.total_page).toBe(1);
+    });
+
+    it('should reject if request is not valid', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/public/products`)
+        .query({
+          page: 'wrong',
+          size: 'wrong',
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.errors).toBeDefined();
+    });
+
+    it('should reject if no product available', async () => {
+      await testService.removeAllProductWithoutElastic();
+
+      const response = await request(app.getHttpServer()).get(
+        `/api/public/products`,
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBe('no product available');
+    });
+  });
 });

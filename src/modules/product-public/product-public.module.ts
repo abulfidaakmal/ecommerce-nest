@@ -5,9 +5,10 @@ import { ProductPublicController } from './product-public.controller';
 import { WishlistModule } from '../wishlist/wishlist.module';
 import { MerchantModule } from '../merchant/merchant.module';
 import { CategoryModule } from '../category/category.module';
+import { ElasticModule } from '../elastic/elastic.module';
 
 @Module({
-  imports: [WishlistModule, MerchantModule, CategoryModule],
+  imports: [WishlistModule, MerchantModule, CategoryModule, ElasticModule],
   providers: [ProductPublicService, ProductPublicRepository],
   controllers: [ProductPublicController],
 })

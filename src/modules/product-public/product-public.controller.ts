@@ -12,11 +12,23 @@ import {
   GetProductByCategoryRequest,
   ProductByIdResponse,
   ProductPublicResponse,
+  SearchProductRequest,
 } from '../../model/product-public.model';
 
 @Controller('/api/public/products')
 export class ProductPublicController {
   constructor(private readonly productPublicService: ProductPublicService) {}
+
+  @Get()
+  async searchProduct(
+    @Query('search') search: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('size', new DefaultValuePipe(60), ParseIntPipe) size: number,
+  ): Promise<ResponseModel<ProductPublicResponse[]>> {
+    const req: SearchProductRequest = { search, size, page };
+
+    return this.productPublicService.search(req);
+  }
 
   @Get('/:productId')
   async getById(

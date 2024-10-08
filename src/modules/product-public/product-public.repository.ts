@@ -3,6 +3,7 @@ import { PrismaService } from '../../common/prisma.service';
 import {
   GetProductByCategoryRequest,
   ProductPublicResponse,
+  SearchProductRequest,
 } from '../../model/product-public.model';
 
 @Injectable()
@@ -54,13 +55,13 @@ export class ProductPublicRepository {
 
   async getSold(product_id: number) {
     return this.prismaService.orderDetails.count({
-      where: { product_id },
+      where: { product_id, status: { in: ['DELIVERED', 'COMPLETED'] } },
     });
   }
 
   async getTotalProductByCategory(category_name: string): Promise<number> {
     return this.prismaService.product.count({
-      where: { categories: { name: category_name } },
+      where: { categories: { name: category_name }, isDeleted: false },
     });
   }
 
@@ -72,6 +73,7 @@ export class ProductPublicRepository {
         categories: {
           name: req.category_name,
         },
+        isDeleted: false,
       },
       select: {
         id: true,
@@ -82,5 +84,73 @@ export class ProductPublicRepository {
       take: req.size,
       skip: req.page,
     });
+  }
+
+  async getTotalDataProductPopular(): Promise<number> {
+    const totalProducts = await this.prismaService.$queryRaw`
+      SELECT COUNT(p.id) AS total
+      FROM products AS p
+      LEFT JOIN order_details AS pd ON p.id = pd.product_id
+      LEFT JOIN (
+        SELECT product_id
+        FROM reviews
+        GROUP BY product_id
+      ) AS r ON p.id = r.product_id
+      LEFT JOIN (
+        SELECT product_id
+        FROM order_details
+        WHERE status IN ('COMPLETED', 'DELIVERED')
+        GROUP BY product_id
+      ) AS o ON p.id = o.product_id
+      WHERE p.isDeleted = false;
+    `;
+
+    return Number(totalProducts[0].total);
+  }
+
+  async getProductPopular(req: SearchProductRequest) {
+    return this.prismaService.$queryRaw`
+      SELECT
+        p.id,
+        p.name,
+        p.image_url,
+        p.price,
+        COALESCE(r.review_count, 0) AS review_count,
+        COALESCE(o.order_count, 0) AS order_count,
+        p.created_at
+      FROM
+        products p
+      LEFT JOIN
+        order_details pd ON p.id = pd.product_id
+      LEFT JOIN
+        (
+          SELECT
+            product_id,
+            COUNT(*) AS review_count
+          FROM
+            reviews
+          GROUP BY
+            product_id
+        ) r ON p.id = r.product_id
+      LEFT JOIN
+        (
+          SELECT
+            product_id,
+            COUNT(*) AS order_count
+          FROM
+            order_details
+          WHERE
+            status IN ('COMPLETED', 'DELIVERED')
+          GROUP BY
+            product_id
+        ) o ON p.id = o.product_id
+      WHERE
+        p.isDeleted = false
+      ORDER BY
+        order_count DESC,
+        review_count DESC,
+        p.created_at DESC
+      LIMIT ${req.size} OFFSET ${req.page};
+    `;
   }
 }

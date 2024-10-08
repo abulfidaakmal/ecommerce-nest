@@ -36,3 +36,9 @@ export class GetProductByCategoryRequest {
   page: number;
   size: number;
 }
+
+export class SearchProductRequest {
+  search?: string;
+  page: number;
+  size: number;
+}
