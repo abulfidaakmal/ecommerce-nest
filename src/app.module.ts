@@ -14,6 +14,7 @@ import { CartModule } from './modules/cart/cart.module';
 import { OrderModule } from './modules/order/order.module';
 import { ReviewModule } from './modules/review/review.module';
 import { MerchantModule } from './modules/merchant/merchant.module';
+import { ProductPublicModule } from './modules/product-public/product-public.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { MerchantModule } from './modules/merchant/merchant.module';
     OrderModule,
     ReviewModule,
     MerchantModule,
+    ProductPublicModule,
   ],
   controllers: [],
   providers: [
