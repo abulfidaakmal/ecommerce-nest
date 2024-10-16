@@ -49,6 +49,11 @@ export class SellerRepository {
         },
       });
 
+      await prisma.address.update({
+        where: { username, id: req.address_id },
+        data: { is_sellers: true },
+      });
+
       return seller;
     });
   }

@@ -36,9 +36,11 @@ describe('SellerController (e2e)', () => {
     it('should can register seller', async () => {
       const addressId = await testService.getAddressId();
       let getUserRole = await testService.getUserRole();
+      let isAddressSeller = await testService.isAddressSeller();
 
       expect(getUserRole.role).toBe('USER');
       expect(getUserRole.has_been_seller).toBeFalsy();
+      expect(isAddressSeller).toBeFalsy();
 
       const response = await request(app.getHttpServer())
         .post('/api/sellers')
@@ -61,6 +63,9 @@ describe('SellerController (e2e)', () => {
       getUserRole = await testService.getUserRole();
       expect(getUserRole.role).toBe('SELLER');
       expect(getUserRole.has_been_seller).toBeTruthy();
+
+      isAddressSeller = await testService.isAddressSeller();
+      expect(isAddressSeller).toBeTruthy();
     });
 
     it('should reject if request is not valid', async () => {

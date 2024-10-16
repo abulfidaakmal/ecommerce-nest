@@ -68,6 +68,15 @@ export class TestService {
     return address.id;
   }
 
+  async isAddressSeller() {
+    const address = await this.prismaService.address.findFirst({
+      where: { username: 'test' },
+      select: { is_sellers: true },
+    });
+
+    return address.is_sellers;
+  }
+
   async selectAddress(address_id: number) {
     await this.prismaService.address.update({
       where: {
