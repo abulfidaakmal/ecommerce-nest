@@ -30,6 +30,7 @@ describe('ProductPublicController (e2e)', () => {
   });
 
   afterEach(async () => {
+    await testService.removeAllReview();
     await testService.removeAllWishlist();
     await testService.removeAllProductWithoutElastic();
     await testService.removeAllCategory();
@@ -60,7 +61,7 @@ describe('ProductPublicController (e2e)', () => {
       expect(response.body.data.product.condition).toBe('NEW');
       expect(response.body.data.product.category_name).toBe('test');
       expect(response.body.data.product.total_sold).toBe(0);
-      expect(response.body.data.product.total_rating).toBe(0);
+      expect(response.body.data.product.total_review).toBe(0);
       expect(response.body.data.seller.name).toBe('test');
       expect(response.body.data.seller.avatar).toBe('test');
       expect(response.body.data.seller.rating_percentage).toBe('0%');
@@ -86,6 +87,124 @@ describe('ProductPublicController (e2e)', () => {
 
       expect(response.status).toBe(400);
       expect(response.body.errors).toBeDefined();
+    });
+  });
+
+  describe('/api/public/products/:productId/reviews (GET)', () => {
+    it('should can get all reviews', async () => {
+      await testService.createReview();
+      const productId = await testService.getProductId();
+
+      const response = await request(app.getHttpServer())
+        .get(`/api/public/products/${productId}/reviews`)
+        .query({
+          page: 1,
+          size: 1,
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.data[0].id).toBeDefined();
+      expect(response.body.data[0].username).toBe('test');
+      expect(response.body.data[0].avatar).toBe('test');
+      expect(response.body.data[0].rating).toBe(5);
+      expect(response.body.data[0].summary).toBe('test');
+      expect(response.body.data[0].image_url).toBe('test');
+      expect(response.body.data[0].created_at).toBeDefined();
+      expect(response.body.data[0].updated_at).toBeDefined();
+      expect(response.body.paging.current_page).toBe(1);
+      expect(response.body.paging.size).toBe(1);
+      expect(response.body.paging.total_data).toBe(1);
+      expect(response.body.paging.total_page).toBe(1);
+    });
+
+    it('should reject if request is not valid', async () => {
+      const productId = await testService.getProductId();
+
+      const response = await request(app.getHttpServer())
+        .get(`/api/public/products/${productId}/reviews`)
+        .query({
+          page: 'wrong',
+          size: 'wrong',
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.errors).toBeDefined();
+    });
+
+    it('should reject if no review available', async () => {
+      await testService.removeAllReview();
+      const productId = await testService.getProductId();
+
+      const response = await request(app.getHttpServer()).get(
+        `/api/public/products/${productId}/reviews`,
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBe('no review available');
+    });
+
+    it('should reject if product is not found', async () => {
+      const productId = await testService.getProductId();
+
+      const response = await request(app.getHttpServer()).get(
+        `/api/public/products/${productId + 100}/reviews`,
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBe('product is not found');
+    });
+  });
+
+  describe('/api/public/products/:productId/ratings/distribution (GET)', () => {
+    it('should can get all reviews', async () => {
+      await testService.createReview();
+      const productId = await testService.getProductId();
+
+      const response = await request(app.getHttpServer()).get(
+        `/api/public/products/${productId}/ratings/distribution`,
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.average).toBe(5.0);
+      expect(response.body.data.percentage).toBe('100%');
+      expect(response.body.data.total_rating).toBe(5);
+      expect(response.body.data.total_review).toBe(1);
+      expect(response.body.data.ratings[0].rating).toBe(5);
+      expect(response.body.data.ratings[0].total).toBe(1);
+      expect(response.body.data.ratings[1].rating).toBe(4);
+      expect(response.body.data.ratings[1].total).toBe(0);
+    });
+
+    it('should reject if request is not valid', async () => {
+      const response = await request(app.getHttpServer()).get(
+        `/api/public/products/wrong/ratings/distribution`,
+      );
+
+      expect(response.status).toBe(400);
+      expect(response.body.errors).toBeDefined();
+    });
+
+    it('should reject if no review available', async () => {
+      await testService.removeAllReview();
+      const productId = await testService.getProductId();
+
+      const response = await request(app.getHttpServer()).get(
+        `/api/public/products/${productId}/ratings/distribution`,
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBe('no review available');
+    });
+
+    it('should reject if product is not found', async () => {
+      const productId = await testService.getProductId();
+
+      const response = await request(app.getHttpServer()).get(
+        `/api/public/products/${productId + 100}/ratings/distribution`,
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBe('product is not found');
     });
   });
 

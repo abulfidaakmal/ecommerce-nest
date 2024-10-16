@@ -8,6 +8,9 @@ import {
   GetProductByCategoryRequest,
   ProductByIdResponse,
   ProductPublicResponse,
+  ProductReviewRequest,
+  ProductReviewResponse,
+  RatingDistributionResponse,
   SearchProductRequest,
 } from '../../model/product-public.model';
 import { ResponseModel } from '../../model/response.model';
@@ -28,6 +31,16 @@ export class ProductPublicService {
     private readonly elasticService: ElasticService,
   ) {}
 
+  async isReviewExists(product_id: number): Promise<number> {
+    const check = await this.productPublicRepository.getReview(product_id);
+
+    if (!check) {
+      throw new HttpException('no review available', 404);
+    }
+
+    return check;
+  }
+
   async getById(product_id: number): Promise<ProductByIdResponse> {
     this.logger.info(`Get product by id request: ${product_id}`);
 
@@ -35,7 +48,7 @@ export class ProductPublicService {
 
     const product = await this.productPublicRepository.getById(product_id);
 
-    const rating = await this.productPublicRepository.getRating(product_id);
+    const review = await this.productPublicRepository.getReview(product_id);
     const sold = await this.productPublicRepository.getSold(product_id);
 
     const seller = product.users.sellers;
@@ -53,7 +66,7 @@ export class ProductPublicService {
         condition: product.condition,
         sku: product.sku,
         category_name: product.categories.name,
-        total_rating: rating,
+        total_review: review,
         total_sold: sold,
       },
       seller: {
@@ -63,6 +76,94 @@ export class ProductPublicService {
         province: seller.addresses.province,
         rating_percentage: ratingInfo.ratingPercentage,
       },
+    };
+  }
+
+  async getAllReview(
+    req: ProductReviewRequest,
+  ): Promise<ResponseModel<ProductReviewResponse[]>> {
+    this.logger.info(
+      `Get all review by product id request: ${JSON.stringify(req)}`,
+    );
+    const getAllRequest: ProductReviewRequest = this.validationService.validate(
+      ProductPublicValidation.GETREVIEW,
+      req,
+    );
+
+    const product_id = getAllRequest.product_id;
+
+    await this.wishlistService.isProductExists(product_id);
+
+    const total_data = await this.isReviewExists(product_id);
+
+    const current_page = getAllRequest.page;
+    const size = getAllRequest.size;
+    getAllRequest.page = (current_page - 1) * size;
+    const total_page = Math.ceil(total_data / size);
+
+    const reviews = await this.productPublicRepository.getAll(getAllRequest);
+
+    const result = reviews.map((review) => {
+      return {
+        id: review.id,
+        rating: review.rating,
+        summary: review.summary,
+        image_url: review.image_url,
+        username: review.users.username,
+        avatar: review.users.avatar,
+        created_at: review.created_at,
+        updated_at: review.updated_at,
+      };
+    });
+
+    return {
+      data: result,
+      paging: {
+        current_page,
+        size,
+        total_data,
+        total_page,
+      },
+    };
+  }
+
+  async getRatingDistribution(
+    product_id: number,
+  ): Promise<RatingDistributionResponse> {
+    this.logger.info(`Get rating distribution request: ${product_id}`);
+
+    await this.wishlistService.isProductExists(product_id);
+    const total_data = await this.isReviewExists(product_id);
+
+    const ratingInfo =
+      await this.productPublicRepository.getRatingInfo(product_id);
+
+    const average = ratingInfo._avg.rating;
+
+    const ratingPercentage = `${((average / 5) * 100).toFixed(0)}%`;
+    const ratingAverage = parseFloat(average.toFixed(1));
+
+    const ratings = await Promise.all(
+      [5, 4, 3, 2, 1].map(async (rating) => {
+        const totalRating =
+          await this.productPublicRepository.getTotalRatingByRating(
+            product_id,
+            rating,
+          );
+
+        return {
+          rating: rating,
+          total: totalRating,
+        };
+      }),
+    );
+
+    return {
+      percentage: ratingPercentage,
+      average: ratingAverage,
+      total_rating: ratingInfo._sum.rating,
+      total_review: total_data,
+      ratings,
     };
   }
 
@@ -132,13 +233,13 @@ export class ProductPublicService {
     let result: ProductPublicResponse[];
 
     if (searchRequest.search) {
-      const searchResult = await this.elasticService.search(searchRequest);
-
       total_data = await this.elasticService.getTotalData(searchRequest.search);
 
       if (!total_data) {
         throw new HttpException('product is not found', 404);
       }
+
+      const searchResult = await this.elasticService.search(searchRequest);
 
       const products = searchResult.hits.hits;
 

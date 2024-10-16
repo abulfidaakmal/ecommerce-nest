@@ -3,6 +3,7 @@ import { PrismaService } from '../../common/prisma.service';
 import {
   GetProductByCategoryRequest,
   ProductPublicResponse,
+  ProductReviewRequest,
   SearchProductRequest,
 } from '../../model/product-public.model';
 
@@ -47,7 +48,48 @@ export class ProductPublicRepository {
     });
   }
 
-  async getRating(product_id: number) {
+  async getAll(req: ProductReviewRequest) {
+    return this.prismaService.review.findMany({
+      where: { product_id: req.product_id },
+      select: {
+        id: true,
+        rating: true,
+        summary: true,
+        image_url: true,
+        created_at: true,
+        updated_at: true,
+        users: {
+          select: {
+            username: true,
+            avatar: true,
+          },
+        },
+      },
+    });
+  }
+
+  async getRatingInfo(product_id: number) {
+    return this.prismaService.review.aggregate({
+      where: { product_id },
+      _sum: {
+        rating: true,
+      },
+      _avg: {
+        rating: true,
+      },
+    });
+  }
+
+  async getTotalRatingByRating(
+    product_id: number,
+    rating: number,
+  ): Promise<number> {
+    return this.prismaService.review.count({
+      where: { rating, product_id },
+    });
+  }
+
+  async getReview(product_id: number) {
     return this.prismaService.review.count({
       where: { product_id },
     });

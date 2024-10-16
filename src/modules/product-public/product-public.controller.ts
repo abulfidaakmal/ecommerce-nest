@@ -12,6 +12,9 @@ import {
   GetProductByCategoryRequest,
   ProductByIdResponse,
   ProductPublicResponse,
+  ProductReviewRequest,
+  ProductReviewResponse,
+  RatingDistributionResponse,
   SearchProductRequest,
 } from '../../model/product-public.model';
 
@@ -23,7 +26,7 @@ export class ProductPublicController {
   async searchProduct(
     @Query('search') search: string,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('size', new DefaultValuePipe(60), ParseIntPipe) size: number,
+    @Query('size', new DefaultValuePipe(1), ParseIntPipe) size: number,
   ): Promise<ResponseModel<ProductPublicResponse[]>> {
     const req: SearchProductRequest = { search, size, page };
 
@@ -36,6 +39,29 @@ export class ProductPublicController {
   ): Promise<ResponseModel<ProductByIdResponse>> {
     const result: ProductByIdResponse =
       await this.productPublicService.getById(product_id);
+
+    return {
+      data: result,
+    };
+  }
+
+  @Get('/:productId/reviews')
+  async getAllReview(
+    @Param('productId', ParseIntPipe) product_id: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('size', new DefaultValuePipe(15), ParseIntPipe) size: number,
+  ): Promise<ResponseModel<ProductReviewResponse[]>> {
+    const req: ProductReviewRequest = { product_id, page, size };
+
+    return this.productPublicService.getAllReview(req);
+  }
+
+  @Get('/:productId/ratings/distribution')
+  async GetRatingDistribution(
+    @Param('productId', ParseIntPipe) product_id: number,
+  ): Promise<ResponseModel<RatingDistributionResponse>> {
+    const result: RatingDistributionResponse =
+      await this.productPublicService.getRatingDistribution(product_id);
 
     return {
       data: result,
