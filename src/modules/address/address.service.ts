@@ -113,6 +113,17 @@ export class AddressService {
     };
   }
 
+  async getById(
+    username: string,
+    address_id: number,
+  ): Promise<AddressResponse> {
+    this.logger.info(`Get address by id request: ${address_id}`);
+
+    await this.isAddressExist(username, address_id);
+
+    return this.addressRepository.getById(username, address_id);
+  }
+
   async update(
     username: string,
     address_id: number,

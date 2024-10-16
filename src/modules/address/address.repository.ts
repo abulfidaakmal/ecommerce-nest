@@ -89,6 +89,27 @@ export class AddressRepository {
     });
   }
 
+  async getById(
+    username: string,
+    address_id: number,
+  ): Promise<AddressResponse> {
+    return this.prismaService.address.findFirst({
+      where: { username, id: address_id },
+      select: {
+        id: true,
+        street: true,
+        city: true,
+        province: true,
+        postal_code: true,
+        detail: true,
+        name: true,
+        phone: true,
+        is_selected: true,
+        is_sellers: true,
+      },
+    });
+  }
+
   async update(
     address_id: number,
     req: CreateAddressRequest,

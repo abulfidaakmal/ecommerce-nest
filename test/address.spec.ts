@@ -173,6 +173,47 @@ describe('AddressController (e2e)', () => {
     });
   });
 
+  describe('/api/addresses/:addressId (GET)', () => {
+    beforeEach(async () => {
+      await testService.createAddress();
+    });
+
+    it('should can get address by id', async () => {
+      const addressId = await testService.getAddressId();
+
+      const response = await request(app.getHttpServer())
+        .get(`/api/addresses/${addressId}`)
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.id).toBeDefined();
+      expect(response.body.data.street).toBe('test');
+      expect(response.body.data.city).toBe('test');
+      expect(response.body.data.province).toBe('test');
+      expect(response.body.data.postal_code).toBe('test');
+      expect(response.body.data.detail).toBe('test');
+      expect(response.body.data.is_selected).toBeDefined();
+      expect(response.body.data.is_sellers).toBeFalsy();
+      expect(response.body.data.name).toBe('test');
+      expect(response.body.data.phone).toBe('test');
+    });
+
+    it('should reject if address is not found', async () => {
+      const addressId = await testService.getAddressId();
+
+      const response = await request(app.getHttpServer())
+        .get(`/api/addresses/${addressId + 100}`)
+        .set('Cookie', [
+          'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
+        ]);
+
+      expect(response.status).toBe(404);
+      expect(response.body.errors).toBe('address is not found');
+    });
+  });
+
   describe('/api/addresses/:addressId (PUT)', () => {
     beforeEach(async () => {
       await testService.createAddress();
@@ -293,7 +334,7 @@ describe('AddressController (e2e)', () => {
     });
   });
 
-  describe('/api/addresses/:addressId (PATCH)', () => {
+  describe('/api/addresses/:addressId/select (PATCH)', () => {
     beforeEach(async () => {
       await testService.createAddress();
     });
@@ -302,7 +343,7 @@ describe('AddressController (e2e)', () => {
       const addressId = await testService.getAddressId();
 
       const response = await request(app.getHttpServer())
-        .patch(`/api/addresses/${addressId}`)
+        .patch(`/api/addresses/${addressId}/select`)
         .set('Cookie', [
           'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
         ]);
@@ -317,7 +358,7 @@ describe('AddressController (e2e)', () => {
       const addressId = await testService.getAddressId();
 
       const response = await request(app.getHttpServer())
-        .patch(`/api/addresses/${addressId + 100}`)
+        .patch(`/api/addresses/${addressId + 100}/select`)
         .set('Cookie', [
           'access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpYXQiOjE3Mjc0OTk1NTV9.zfiAoVRw5xWs96mVc7s-0Gra_wnKf31ZpeBZORJwLEs',
         ]);

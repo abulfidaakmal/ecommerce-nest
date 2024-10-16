@@ -51,6 +51,21 @@ export class AddressController {
     return this.addressService.search(username, req);
   }
 
+  @Get('/:addressId')
+  async getById(
+    @Auth() username: string,
+    @Param('addressId', ParseIntPipe) address_id: number,
+  ): Promise<ResponseModel<AddressResponse>> {
+    const result: AddressResponse = await this.addressService.getById(
+      username,
+      address_id,
+    );
+
+    return {
+      data: result,
+    };
+  }
+
   @Put('/:addressId')
   async update(
     @Auth() username: string,
@@ -83,7 +98,7 @@ export class AddressController {
     };
   }
 
-  @Patch('/:addressId')
+  @Patch('/:addressId/select')
   async select(
     @Auth() username: string,
     @Param('addressId', ParseIntPipe) address_id: number,
