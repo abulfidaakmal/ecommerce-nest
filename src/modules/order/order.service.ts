@@ -24,39 +24,6 @@ export class OrderService {
     private readonly wishlistService: WishlistService,
   ) {}
 
-  toOrderResponse(order, products: any): OrderResponse {
-    const orderDetails = order.order_details;
-
-    const totalQuantity = orderDetails.reduce(
-      (acc, curr) => acc + curr.quantity,
-      0,
-    );
-
-    const totalPrice = orderDetails.reduce(
-      (acc, curr, index) => acc + products[index].price * curr.quantity,
-      0,
-    );
-
-    return {
-      order: {
-        id: order.id,
-        total_price: totalPrice,
-        total_quantity: totalQuantity,
-      },
-      product: products.map((product, index) => ({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        image_url: product.image_url,
-        quantity: orderDetails[index].quantity,
-        status: orderDetails[index].status,
-        seller_name: product.users.sellers.name,
-      })),
-      created_at: orderDetails[0].created_at,
-      updated_at: orderDetails[0].updated_at,
-    };
-  }
-
   async isOrderExists(username: string, order_id: number): Promise<void> {
     const check = await this.orderRepository.isOrderExists(username, order_id);
 
@@ -116,14 +83,43 @@ export class OrderService {
       };
     });
 
-    const orders = await this.orderRepository.create(
+    const order = await this.orderRepository.create(
       username,
       data,
       isAddressExists.id,
       product_ids,
     );
 
-    return this.toOrderResponse(orders, products);
+    const orderDetails = order.order_details;
+
+    const totalQuantity = orderDetails.reduce(
+      (acc, curr) => acc + curr.quantity,
+      0,
+    );
+
+    const totalPrice = orderDetails.reduce(
+      (acc, curr, index) => acc + products[index].price * curr.quantity,
+      0,
+    );
+
+    return {
+      order: {
+        id: order.id,
+        total_price: totalPrice,
+        total_quantity: totalQuantity,
+      },
+      product: products.map((product, index) => ({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image_url: product.image_url,
+        quantity: orderDetails[index].quantity,
+        status: orderDetails[index].status,
+        seller_name: product.users.sellers.name,
+      })),
+      created_at: orderDetails[0].created_at,
+      updated_at: orderDetails[0].updated_at,
+    };
   }
 
   async getAll(
@@ -160,19 +156,48 @@ export class OrderService {
     getAllRequest.page = (current_page - 1) * size;
     const total_page = Math.ceil(total_data / size);
 
-    const orders = await this.orderRepository.getAll(
+    const [orders, ordersDetail]: any = await this.orderRepository.getAll(
       username,
       status,
       getAllRequest,
     );
 
-    const result = await Promise.all(
-      orders.map(async (order) => {
-        const products = order.order_details.map((detail) => detail.products);
+    const result = orders.map((order) => {
+      const orderDetail = ordersDetail.filter(
+        (detail) => detail.order_id === order.id,
+      );
 
-        return this.toOrderResponse(order, products);
-      }),
-    );
+      const products = orderDetail.map((detail) => detail.products);
+
+      const totalQuantity = ordersDetail.reduce(
+        (acc, curr) => acc + curr.quantity,
+        0,
+      );
+
+      const totalPrice = ordersDetail.reduce(
+        (acc, curr) => acc + curr.price * curr.quantity,
+        0,
+      );
+
+      return {
+        order: {
+          id: order.id,
+          total_price: totalPrice,
+          total_quantity: totalQuantity,
+        },
+        product: products.map((product, index) => ({
+          id: product.id,
+          name: product.name,
+          price: ordersDetail[index].price,
+          image_url: product.image_url,
+          quantity: ordersDetail[index].quantity,
+          status: ordersDetail[index].status,
+          seller_name: product.users.sellers.name,
+        })),
+        created_at: ordersDetail[0].created_at,
+        updated_at: ordersDetail[0].updated_at,
+      };
+    });
 
     return {
       data: result,

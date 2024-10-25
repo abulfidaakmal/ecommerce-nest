@@ -81,6 +81,10 @@ export class OrderRepository {
         where: { username, product_id: { in: product_ids } },
       });
 
+      await prisma.cart.deleteMany({
+        where: { username, product_id: { in: product_ids } },
+      });
+
       await Promise.all(
         data.map(async (result) => {
           await prisma.product.update({
@@ -112,44 +116,55 @@ export class OrderRepository {
   }
 
   async getAll(username: string, status, req: GetAllOrderRequest) {
-    return this.prismaService.order.findMany({
-      where: {
-        username,
-        order_details: {
-          some: {
-            status,
+    return this.prismaService.$transaction(async (prisma) => {
+      const order = await prisma.order.findMany({
+        where: {
+          username,
+          order_details: {
+            some: {
+              status,
+            },
           },
         },
-      },
-      select: {
-        id: true,
-        order_details: {
-          select: {
-            quantity: true,
-            status: true,
-            created_at: true,
-            updated_at: true,
-            products: {
-              select: {
-                id: true,
-                name: true,
-                stock: true,
-                price: true,
-                image_url: true,
-                users: {
-                  select: {
-                    sellers: {
-                      select: { name: true },
-                    },
+        take: req.size,
+        skip: req.page,
+      });
+
+      const orderDetail = await prisma.orderDetails.findMany({
+        where: {
+          orders: {
+            username,
+          },
+          status,
+        },
+        select: {
+          order_id: true,
+          quantity: true,
+          price: true,
+          status: true,
+          created_at: true,
+          updated_at: true,
+          products: {
+            select: {
+              id: true,
+              name: true,
+              stock: true,
+              image_url: true,
+              users: {
+                select: {
+                  sellers: {
+                    select: { name: true },
                   },
                 },
               },
             },
           },
         },
-      },
-      take: req.size,
-      skip: req.page,
+        take: req.size,
+        skip: req.page,
+      });
+
+      return [order, orderDetail];
     });
   }
 
