@@ -130,7 +130,7 @@ export class ProductPublicRepository {
 
   async getTotalDataProductPopular(): Promise<number> {
     const totalProducts = await this.prismaService.$queryRaw`
-      SELECT COUNT(p.id) AS total
+      SELECT DISTINCT COUNT(p.id) AS total
       FROM products AS p
       LEFT JOIN order_details AS pd ON p.id = pd.product_id
       LEFT JOIN (
@@ -152,7 +152,7 @@ export class ProductPublicRepository {
 
   async getProductPopular(req: SearchProductRequest) {
     return this.prismaService.$queryRaw`
-      SELECT
+      SELECT DISTINCT
         p.id,
         p.name,
         p.image_url,

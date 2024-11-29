@@ -20,12 +20,12 @@ export class OrderSellerRepository {
     return this.prismaService.orderDetails.findMany({
       where,
       select: {
-        id: true,
         price: true,
         quantity: true,
         status: true,
         orders: {
           select: {
+            id: true,
             users: {
               select: {
                 username: true,
@@ -100,12 +100,12 @@ export class OrderSellerRepository {
           status: req.status,
         },
         select: {
-          id: true,
           price: true,
           quantity: true,
           status: true,
           orders: {
             select: {
+              id: true,
               users: {
                 select: {
                   username: true,

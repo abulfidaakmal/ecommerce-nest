@@ -28,7 +28,7 @@ export class OrderSellerService {
 
     return {
       order: {
-        id: order.id,
+        id: order.orders.id,
         status: order.status,
         price: order.price,
         customer: order.orders.users.username,
