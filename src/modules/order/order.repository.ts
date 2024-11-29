@@ -81,6 +81,10 @@ export class OrderRepository {
         where: { username, product_id: { in: product_ids } },
       });
 
+      await prisma.cart.deleteMany({
+        where: { username, product_id: { in: product_ids } },
+      });
+
       await Promise.all(
         data.map(async (result) => {
           await prisma.product.update({
@@ -99,14 +103,12 @@ export class OrderRepository {
   }
 
   async getTotalOrder(username: string, status): Promise<number> {
-    return this.prismaService.order.count({
+    return this.prismaService.orderDetails.count({
       where: {
-        username,
-        order_details: {
-          some: {
-            status,
-          },
+        orders: {
+          username,
         },
+        status,
       },
     });
   }
@@ -124,6 +126,9 @@ export class OrderRepository {
       select: {
         id: true,
         order_details: {
+          where: {
+            status,
+          },
           select: {
             quantity: true,
             status: true,
