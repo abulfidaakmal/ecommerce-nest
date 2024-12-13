@@ -244,8 +244,8 @@ describe('CartController (e2e)', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.data.cart.id).toBe(cartId);
-      expect(response.body.data.cart.quantity).toBe(3);
-      expect(response.body.data.cart.total).toBe(1000 * 3);
+      expect(response.body.data.cart.quantity).toBe(2);
+      expect(response.body.data.cart.total).toBe(1000 * 2);
       expect(response.body.data.product.id).toBeDefined();
       expect(response.body.data.product.name).toBe('test123');
       expect(response.body.data.product.image_url).toBe('test');

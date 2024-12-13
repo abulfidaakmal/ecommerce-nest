@@ -157,13 +157,6 @@ export class CartService {
 
     const product = await this.cartRepository.getProductPrice(productId);
 
-    const existingCart = await this.cartRepository.existingCart(
-      username,
-      productId,
-    );
-
-    updateRequest.quantity += existingCart.quantity;
-
     const price = product.price;
 
     const cart = await this.cartRepository.update(
